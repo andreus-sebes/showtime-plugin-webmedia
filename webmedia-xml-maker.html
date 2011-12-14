@@ -1,0 +1,2933 @@
+<html>
+<head>
+	<title>webMedia plugin for Showtime - XML file builder</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/> 
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1/jquery-ui.min.js"></script>
+	<script type="text/javascript">
+	function xml_clean(text)
+	{
+		return text.replace('&','&amp;').replace('<','&lt;').replace('>','&gt;');
+	}
+	$(document).ready(function()
+	{
+		var modal_test=false;
+		var def_source_title="Title of the source";
+		var def_source_link="URL of the source (RSS, Podcast, Imagecast, Videocast, rtmp live TV/Radio)";
+		var def_source_thumbnail="HTTP/SMB/Plugin URL/Path of the image (ex: http://www.example.com/test.png)";
+		var def_source_publisher="Publisher of the source, for grouping and image (ex: CNN, YouTube, Showtime, etc)";
+		var def_source_theme="Themes of the source, for grouping and image. Click + for more (ex: Movies, Games, Favorites)";
+		var def_theme_image="HTTP/SMB/Local/Plugin URL/Path of the image (ex: http://www.example.com/test.png)";
+		var def_publisher_image="HTTP/SMB/Local/Plugin URL/Path of the image (ex: http://www.example.com/test.png)";
+		var new_theme=	'<div id="div_theme0" class="item">'+
+						'	<label for="theme0_title"><span class="t">Title:</span>'+
+						'		<input id="theme0_title" name="theme0_title" type="text" disabled="disabled" value=""/>'+
+						'	</label>'+
+						'	<label for="theme0_image"><span class="t">Image URL/Path:</span>'+
+						'		<input id="theme0_image" name="theme0_image" type="text" class="inactive" value="'+def_theme_image+'"/>'+
+						'	</label>'+
+						'	<div class="clr"></div>'+
+						'</div>';
+
+		var new_publisher=	'<div id="div_publisher0" class="item">'+
+							'	<label for="publisher0_title"><span class="t">Title:</span>'+
+							'		<input id="publisher0_title" name="publisher0_title" type="text" disabled="disabled" value=""/>'+
+							'	</label>'+
+							'	<label for="publisher0_image"><span class="t">Image URL/Path:</span>'+
+							'		<input id="publisher0_image" name="publisher0_image" type="text" class="inactive" value="'+def_publisher_image+'"/>'+
+							'	</label>'+
+							'	<div class="clr"></div>'+
+							'</div>';
+		$('div[id*="div_"] .optf .addsf').live("click", function (e)
+		{
+			//$('.xmlarea').removeClass('hd').hide();
+			var rand=Math.floor(Math.random()*9999999999999999+1);
+			var newf=$(this).parent("span").parent("p").parent("div").clone();
+			var html=newf.html();
+			html=html.replace(/(source|publisher|theme|country|type|parentalcontrol|favorite)([0-9]+)/g,'$1'+rand);
+			//html=html.replace(/\[\+\]<\/a><\/div>/g,'[+]</a>&nbsp;<a href="" class="rems">[-]</a></div></div>');
+			newf.html(html);
+			var newid=newf.attr("id").replace(/div_(source|publisher|theme|country|type|parentalcontrol|favorite)([0-9]+)/g,'div_$1'+rand);
+			newf.attr("id",newid);
+			newf.find("input[id*=_title]").val(def_source_title).removeClass("inactive").addClass("inactive");
+			newf.find("input[id*=_link]").val(def_source_link).removeClass("inactive").addClass("inactive");
+			newf.find("input[id*=_thumbnail]").val(def_source_thumbnail).removeClass("inactive").addClass("inactive");
+			newf.find("input[id*=_publisher]").val(def_source_publisher).removeClass("inactive").addClass("inactive");
+			newf.find("input[id*=_theme]").val(def_source_theme).removeClass("inactive").addClass("inactive");
+			var count=0;
+			newf.find("input[id*=_theme]").each(function ()
+			{
+				if (count!=0) $(this).parent("label").remove();
+				count++;
+			});
+			newf.find("input[id*=_theme]").val(def_source_theme).removeClass("inactive").addClass("inactive");
+			newf.find("input[id*=_country]").val('');
+			newf.find("input[id*=_type]").val('');
+			newf.find("input[id*=_parentalcontrol]").val('');
+			newf.find("input[id*=_favorite]").val('');
+			newf.find(".optf span[class=hd]").removeClass("hd");
+			$(this).parent("span").parent("p").parent("div").after(newf);
+			return false;
+		});
+		$('div[id*="div_"] .optf .remsf').live("click", function (e)
+		{
+			//$('.xmlarea').removeClass('hd').hide();
+			$(this).parent("span").parent("span").parent("p").parent("div").remove();
+			return false;
+		});
+	
+		//TO DO
+		$('div[id*="div_"] .opts .adds').live("click", function (e)
+		{
+			//$('.xmlarea').removeClass('hd').hide();
+			var rand=Math.floor(Math.random()*9999999999999999+1);
+			var ohtml=$(this).parent("div").parent("label").clone();
+			var html=ohtml.html();
+			html=html.replace(/_(publisher|theme|country)([0-9]+)/g,'_$1'+rand);
+			//html=html.replace(/\[\+\]<\/a><\/div>/g,'[+]</a>&nbsp;<a href="" class="rems">[-]</a></div></div>');
+			ohtml.html(html);
+			var newid=ohtml.find("input").attr("id");
+			ohtml.find("input").val(def_source_theme).removeClass("inactive").addClass("inactive");
+			ohtml.attr("for",newid);
+			ohtml.find("span[class=hd]").removeClass("hd");
+			$(this).parent("div").parent("label").after(ohtml);
+			return false;
+		});
+		$('div[id*="div_"] .opts .rems').live("click", function (e)
+		{
+			//$('.xmlarea').removeClass('hd').hide();
+			$(this).parent("span").parent("div").parent("label").remove();
+			return false;
+		});
+		$('input[id*=_theme]').live("change", function (e)
+		{
+			if (val!=def_source_theme)
+			{
+				var val=$(this).val();
+				var exists=false;
+				$('div[id*="div_theme"] input[id*=_title]').each(function ()
+				{
+					if ($(this).val()==val) exists=true;
+				});
+				if (exists==false)
+				{
+					var rand=Math.floor(Math.random()*9999999999999999+1);
+					var ohtml=$(new_theme);
+					var html=ohtml.html();
+					html=html.replace(/theme([0-9]+)/g,'theme'+rand);
+					ohtml.html(html);
+					ohtml.attr("id",'div_theme'+rand);
+					ohtml.find("input[id*=_title]").val(val);
+					$('#themes').append(ohtml);
+				}
+				//clean unsed
+				$('div[id*="div_theme"] input[id*=_title]').each(function ()
+				{
+					var theval=$(this).val();
+					var theexists=false;
+					$('input[id*=_theme]').each(function ()
+					{
+						if ($(this).val()==theval) theexists=true;
+					});
+					if (theexists==false) $(this).parent("label").parent("div").remove();
+				});
+			}
+		});
+		$('input[id*=_publisher]').live("change", function (e)
+		{
+			if (val!=def_source_publisher)
+			{
+				var val=$(this).val();
+				var exists=false;
+				$('div[id*="div_publisher"] input[id*=_title]').each(function ()
+				{
+					if ($(this).val()==val) exists=true;
+				});
+				if (exists==false)
+				{
+					var rand=Math.floor(Math.random()*9999999999999999+1);
+					var ohtml=$(new_publisher);
+					var html=ohtml.html();
+					html=html.replace(/publisher([0-9]+)/g,'publisher'+rand);
+					ohtml.html(html);
+					ohtml.attr("id",'div_publisher'+rand);
+					ohtml.find("input[id*=_title]").val(val);
+					$('#publishers').append(ohtml);
+				}
+				//clean unsed
+				$('div[id*="div_publisher"] input[id*=_title]').each(function ()
+				{
+					var pubval=$(this).val();
+					var pubexists=false;
+					$('input[id*=_publisher]').each(function ()
+					{
+						if ($(this).val()==pubval) pubexists=true;
+					});
+					if (pubexists==false) $(this).parent("label").parent("div").remove();
+				});
+			}
+		});
+
+		$('#form_pastebin, #form_pastehtml').live("submit", function (e)
+		{
+			var oxml ='<?xml version="1.0" encoding="UTF-8"?>\n';
+			oxml+='<rss>\n';
+			oxml+='\t<sources>\n';
+			$('div[id*="div_source"]').each(function ()
+			{
+				var stitle=(def_source_title==xml_clean($(this).find("input[id*=_title]").val()))?'':xml_clean($(this).find("input[id*=_title]").val());
+				var slink=(def_source_link==xml_clean($(this).find("input[id*=_link]").val()))?'':xml_clean($(this).find("input[id*=_link]").val());
+				if (stitle!='' && slink!='')
+				{
+					var sthumbnail=(def_source_thumbnail==xml_clean($(this).find("input[id*=_thumbnail]").val()))?'':xml_clean($(this).find("input[id*=_thumbnail]").val());
+					var spublisher=(def_source_publisher==xml_clean($(this).find("input[id*=_publisher]").val()))?'':xml_clean($(this).find("input[id*=_publisher]").val());
+					oxml+='\t\t<item>\n';
+					oxml+='\t\t\t<title>'+stitle+'</title>\n';
+					oxml+='\t\t\t<link>'+slink+'</link>\n';
+					oxml+='\t\t\t<thumbnail>'+sthumbnail+'</thumbnail>\n';
+					oxml+='\t\t\t<country>'+xml_clean($(this).find("select[id*=_country]").val())+'</country>\n';
+					$(this).find("input[id*=_theme]").each(function ()
+					{
+						var stheme=(def_source_theme==xml_clean($(this).val()))?'':xml_clean($(this).val());
+						oxml+='\t\t\t<theme>'+stheme+'</theme>\n';
+					});
+					oxml+='\t\t\t<publisher>'+spublisher+'</publisher>\n';
+					oxml+='\t\t\t<type>'+xml_clean($(this).find("select[id*=_type]").val())+'</type>\n';
+					oxml+='\t\t\t<parentalcontrol>'+xml_clean($(this).find("select[id*=_parentalcontrol]").val())+'</parentalcontrol>\n';
+					oxml+='\t\t\t<favorite>'+xml_clean($(this).find("select[id*=_favorite]").val())+'</favorite>\n';
+					oxml+='\t\t</item>\n';
+				}
+			});
+			oxml+='\t</sources>\n';
+			oxml+='\t<countries>\n';
+			$('div[id*="div_country"]').each(function ()
+			{
+				oxml+='\t\t<item><title>'+xml_clean($(this).find("input[id*=_title]").val())+'</title><image>'+xml_clean($(this).find("input[id*=_image]").val())+'</image></item>\n';
+			});
+			oxml+='\t</countries>\n';
+			oxml+='\t<themes>\n';
+			$('div[id*="div_theme"]').each(function ()
+			{
+				var theurl=(def_theme_image==xml_clean($(this).find("input[id*=_image]").val()))?'':xml_clean($(this).find("input[id*=_image]").val());
+				oxml+='\t\t<item><title>'+xml_clean($(this).find("input[id*=_title]").val())+'</title><image>'+theurl+'</image></item>\n';
+			});
+			oxml+='\t</themes>\n';
+			oxml+='\t<publishers>\n';
+			$('div[id*="div_publisher"]').each(function ()
+			{
+				var puburl=(def_publisher_image==xml_clean($(this).find("input[id*=_image]").val()))?'':xml_clean($(this).find("input[id*=_image]").val());
+				oxml+='\t\t<item><title>'+xml_clean($(this).find("input[id*=_title]").val())+'</title><image>'+puburl+'</image></item>\n';
+			});
+			oxml+='\t</publishers>\n';
+			oxml+='\t<types>\n';
+			$('div[id*="div_type"]').each(function ()
+			{
+				oxml+='\t\t<item><title>'+xml_clean($(this).find("input[id*=_title]").val())+'</title><image>'+xml_clean($(this).find("input[id*=_image]").val())+'</image><textcolor>'+xml_clean($(this).find("input[id*=_textcolor]").val())+'</textcolor></item>\n';
+			});
+			oxml+='\t</types>\n';
+			oxml+='</rss>';
+			$('#paste_code').val(oxml);
+			$('#txt').val(oxml);
+			/*$.ajax(
+			{  
+				type: "POST",  
+				url: "http://pastebin.com/api_public.php",  
+				data: $("#form_xmlcreate").serialize(),
+				success: function(data) { alert(data); }
+			});*/
+			//$('.xmlarea').removeClass('hd').show();
+			//return false;
+		});
+
+		//$('.xmlarea').removeClass('hd').hide();
+		$('div[id*="div_source"] input[id*=_title]').val(def_source_title).addClass("inactive");
+		$('div[id*="div_source"] input[id*=_title]').live("focus", function() { if ($(this).val()==def_source_title) { $(this).val(""); $(this).removeClass("inactive");} })
+													.live("blur", function() { if ($(this).val()=='') {$(this).addClass("inactive");$(this).val(def_source_title); } });
+		$('div[id*="div_source"] input[id*=_link]').val(def_source_link).addClass("inactive");
+		$('div[id*="div_source"] input[id*=_link]').live("focus", function() { if ($(this).val()==def_source_link) { $(this).val(""); $(this).removeClass("inactive");} })
+												.live("blur", function() { if ($(this).val()=='') {$(this).addClass("inactive");$(this).val(def_source_link); } });
+		$('div[id*="div_source"] input[id*=_thumbnail]').val(def_source_thumbnail).addClass("inactive");
+		$('div[id*="div_source"] input[id*=_thumbnail]').live("focus", function() { if ($(this).val()==def_source_thumbnail) { $(this).val(""); $(this).removeClass("inactive");} })
+														.live("blur", function() { if ($(this).val()=='') {$(this).addClass("inactive");$(this).val(def_source_thumbnail); } });
+		$('div[id*="div_source"] input[id*=_publisher]').val(def_source_publisher).addClass("inactive");
+		$('div[id*="div_source"] input[id*=_publisher]').live("focus", function() { if ($(this).val()==def_source_publisher) { $(this).val(""); $(this).removeClass("inactive");} })
+														.live("blur", function() { if ($(this).val()=='') {$(this).addClass("inactive");$(this).val(def_source_publisher); } });
+		$('div[id*="div_source"] input[id*=_theme]').val(def_source_theme).addClass("inactive");
+		$('div[id*="div_source"] input[id*=_theme]').live("focus", function() { if ($(this).val()==def_source_theme) { $(this).val(""); $(this).removeClass("inactive");} })
+													.live("blur", function() { if ($(this).val()=='') {$(this).addClass("inactive");$(this).val(def_source_theme); } });
+		$('div[id*="div_source"] input[id*=_country]').val('');
+		$('div[id*="div_source"] input[id*=_type]').val('');
+		$('div[id*="div_source"] input[id*=_parentalcontrol]').val('');
+		$('div[id*="div_source"] input[id*=_favorite]').val('');
+		$('div[id*="div_publisher"] input[id*=_image]').live("focus", function() { if ($(this).val()==def_publisher_image) { $(this).val(""); $(this).removeClass("inactive");} })
+													   .live("blur", function() { if ($(this).val()=='') {$(this).addClass("inactive");$(this).val(def_publisher_image); } });
+		$('div[id*="div_theme"] input[id*=_image]').live("focus", function() { if ($(this).val()==def_theme_image) { $(this).val(""); $(this).removeClass("inactive");} })
+												  .live("blur", function() { if ($(this).val()=='') {$(this).addClass("inactive");$(this).val(def_theme_image); } });
+		$('#tabs').tabs();
+		//$("input[id*=_textcolor]").colorpicker();
+	});	
+	</script>
+	<link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1/themes/base/jquery-ui.css" type="text/css" media="all" />
+	<style type="text/css">
+	.hd {display:none;}
+	.sh {display:block;}
+	.clr {clear:both;}
+	.mandatory {color:red;}
+	label {display:block;clear:both;}
+	body{font-size:0.8em;font-family:verdana, arial, sans-serif;}
+	fieldset{border-collapse:none;border:0;}
+	form{padding:0;margin:0;}
+	.item{border:1px solid #666;padding:1em;margin:2px 0;}
+	.item p{line-height:1em;margin:0 0 1em 0;;}
+	.item .t{width:12em;display:block;float:left;}
+	.item input{width:45em;display:block;float:left;}
+	.item select{width:45em;display:block;float:left;}
+	.item .opts{display:block;float:right;}
+	.item .opts a{text-decoration:none}
+	.item .optf{float:right;}
+	.item .optf a{text-decoration:none}
+	.inactive { color:#B0B0B0; font-style:italic;}
+	</style>
+</head>
+<body>
+	<h1>webMedia plugin for Showtime - XML file builder</h1>
+	<p>Just start with "Sources" tab and then go to next tab and so on.</p>
+	<p>Please note that this tool only creates a xml file. For editing your file you can also use this tool to make the xml "&lt;item&gt;" tags and then manualy add then to your existing xml file.</p>
+	<div id="tabs">
+    <ul>
+        <li><a href="#sources"><span>Sources</span></a></li>
+        <li><a href="#publishers"><span>Publishers</span></a></li>
+        <li><a href="#themes"><span>Themes</span></a></li>
+        <li><a href="#countries"><span>Countries</span></a></li>
+        <li><a href="#types"><span>Types</span></a></li>
+        <li><a href="#create"><span>Create XML</span></a></li>
+    </ul>
+	<form method="get" id="form_xml" name="form_xml" action="">
+	<fieldset>
+	<div id="sources">
+		<p><strong>1. Add your sources</strong></p>
+		<div style="font-size:0.8em;line-height:1em;">
+		<p>Source URL examples:</p>
+		<p>- RSS feed: <a href="http://rss.cnn.com/rss/edition.rss" target="_blank">http://rss.cnn.com/rss/edition.rss</a></p>
+		<p>- Imagecast: <a href="http://picasaweb.google.com/data/feed/base/all?alt=rss" target="_blank">http://picasaweb.google.com/data/feed/base/all?alt=rss</a></p>
+		<p>- Podcast: <a href="http://rss.cnn.com/services/podcasting/newscast/rss.xml" target="_blank">http://rss.cnn.com/services/podcasting/newscast/rss.xml</a></p>
+		<p>- Videocast: <a href="http://rss.cnn.com/services/podcasting/ac360/rss.xml" target="_blank">http://rss.cnn.com/services/podcasting/ac360/rss.xml</a></p>
+		<p>- Live TV: use .strm URL or see <a href="http://psx-scene.com/forums/content/tutorial-get-rtmp-links-tv-streams-others-1288/" target="_blank">Tutorial: Get RTMP links for TV Streams and others (Showtime)</a> for rtmp links</p>
+		<p>- Live Radio: use .strm URL or see <a href="http://psx-scene.com/forums/content/tutorial-get-rtmp-links-tv-streams-others-1288/" target="_blank">Tutorial: Get RTMP links for TV Streams and others (Showtime)</a> for rtmp links</p>
+		</div>
+		<div id="div_source0" class="item">
+			<p><span class="optf"><a href="" class="addsf">[+]</a><span class="hd">&nbsp;<a href="" class="remsf">[-]</a></span></span></p>
+			<label for="source0_title"><span class="t"><span class="mandatory">*</span>&nbsp;Title:</span>
+				<input id="source0_title" name="source0_title" type="text" value=""/>
+			</label>
+			<label for="source0_link"><span class="t"><span class="mandatory">*</span>&nbsp;Source URL:</span>
+				<input id="source0_link" name="source0_link" type="text" value=""/>
+			</label>
+			<label for="source0_thumbnail"><span class="t">Thumbnail URL/Path:</span>
+				<input id="source0_thumbnail" name="source0_thumbnail" type="text" value=""/>
+			</label>
+			<label for="source0_publisher"><span class="t">Publisher:</span>
+				<input id="source0_publisher" name="source0_publisher" type="text" value=""/>
+			</label>
+			<label for="source0_theme0"><span class="t">Theme:</span>
+				<input id="source0_theme0" name="source0_theme0" type="text" value=""/>
+				<div class="opts"><a href="" class="adds">[+]</a><span class="hd">&nbsp;<a href="" class="rems">[-]</a></span></div>
+			</label>
+			<label for="source0_country"><span class="t">Country:</span>
+				<select id="source0_country" name="source0_country">
+					<option value="" selected="selected">(choose a country)</option>
+					<option value="Åland">Åland</option>
+					<option value="Afghanistan">Afghanistan</option>
+					<option value="Albania">Albania</option>
+					<option value="Alderney">Alderney</option>
+					<option value="Algeria">Algeria</option>
+					<option value="American Samoa">American Samoa</option>
+					<option value="Andorra">Andorra</option>
+					<option value="Angola">Angola</option>
+					<option value="Anguilla">Anguilla</option>
+					<option value="Antigua and Barbuda">Antigua and Barbuda</option>
+					<option value="Argentina">Argentina</option>
+					<option value="Armenia">Armenia</option>
+					<option value="Aruba">Aruba</option>
+					<option value="Australia">Australia</option>
+					<option value="Austria">Austria</option>
+					<option value="Azerbaijan">Azerbaijan</option>
+					<option value="Bahrain">Bahrain</option>
+					<option value="Bangladesh">Bangladesh</option>
+					<option value="Barbados">Barbados</option>
+					<option value="Belarus">Belarus</option>
+					<option value="Belgium">Belgium</option>
+					<option value="Belize">Belize</option>
+					<option value="Benin">Benin</option>
+					<option value="Bermuda">Bermuda</option>
+					<option value="Bhutan">Bhutan</option>
+					<option value="Bolivia (state)">Bolivia (state)</option>
+					<option value="Bonaire">Bonaire</option>
+					<option value="Bosnia and Herzegovina">Bosnia and Herzegovina</option>
+					<option value="Botswana">Botswana</option>
+					<option value="Brazil">Brazil</option>
+					<option value="Brunei">Brunei</option>
+					<option value="Bulgaria">Bulgaria</option>
+					<option value="Burkina Faso">Burkina Faso</option>
+					<option value="Burundi">Burundi</option>
+					<option value="Cambodia">Cambodia</option>
+					<option value="Cameroon">Cameroon</option>
+					<option value="Canada">Canada</option>
+					<option value="Cape Verde">Cape Verde</option>
+					<option value="Chad">Chad</option>
+					<option value="Chile">Chile</option>
+					<option value="Christmas Island">Christmas Island</option>
+					<option value="Colombia">Colombia</option>
+					<option value="Costa Rica">Costa Rica</option>
+					<option value="Cote d'Ivoire">Cote d'Ivoire</option>
+					<option value="Croatia">Croatia</option>
+					<option value="Cuba">Cuba</option>
+					<option value="Curaçao">Curaçao</option>
+					<option value="Cyprus">Cyprus</option>
+					<option value="Denmark">Denmark</option>
+					<option value="Djibouti">Djibouti</option>
+					<option value="Dominica">Dominica</option>
+					<option value="East Timor">East Timor</option>
+					<option value="Ecuador">Ecuador</option>
+					<option value="Egypt">Egypt</option>
+					<option value="El Salvador">El Salvador</option>
+					<option value="Equatorial Guinea">Equatorial Guinea</option>
+					<option value="Eritrea">Eritrea</option>
+					<option value="Estonia">Estonia</option>
+					<option value="Ethiopia">Ethiopia</option>
+					<option value="Federated States of Micronesia">Federated States of Micronesia</option>
+					<option value="Fiji">Fiji</option>
+					<option value="Finland">Finland</option>
+					<option value="France">France</option>
+					<option value="French Polynesia">French Polynesia</option>
+					<option value="Gabon">Gabon</option>
+					<option value="Georgia">Georgia</option>
+					<option value="Germany">Germany</option>
+					<option value="Ghana">Ghana</option>
+					<option value="Gibraltar">Gibraltar</option>
+					<option value="Greece">Greece</option>
+					<option value="Greenland">Greenland</option>
+					<option value="Grenada">Grenada</option>
+					<option value="Guam">Guam</option>
+					<option value="Guatemala">Guatemala</option>
+					<option value="Guernsey">Guernsey</option>
+					<option value="Guinea-Bissau">Guinea-Bissau</option>
+					<option value="Guinea">Guinea</option>
+					<option value="Guyana">Guyana</option>
+					<option value="Haiti">Haiti</option>
+					<option value="Herm">Herm</option>
+					<option value="Honduras">Honduras</option>
+					<option value="Hong Kong">Hong Kong</option>
+					<option value="Hungary">Hungary</option>
+					<option value="Iceland">Iceland</option>
+					<option value="India">India</option>
+					<option value="Indonesia">Indonesia</option>
+					<option value="Iran">Iran</option>
+					<option value="Iraq">Iraq</option>
+					<option value="Ireland">Ireland</option>
+					<option value="Israel">Israel</option>
+					<option value="Italy">Italy</option>
+					<option value="Jamaica">Jamaica</option>
+					<option value="Japan">Japan</option>
+					<option value="Jersey">Jersey</option>
+					<option value="Jordan">Jordan</option>
+					<option value="Kazakhstan">Kazakhstan</option>
+					<option value="Kenya">Kenya</option>
+					<option value="Kiribati">Kiribati</option>
+					<option value="Kosovo">Kosovo</option>
+					<option value="Kuwait">Kuwait</option>
+					<option value="Kyrgyzstan">Kyrgyzstan</option>
+					<option value="Laos">Laos</option>
+					<option value="Latvia">Latvia</option>
+					<option value="Lebanon">Lebanon</option>
+					<option value="Lesotho">Lesotho</option>
+					<option value="Liberia">Liberia</option>
+					<option value="Libya">Libya</option>
+					<option value="Liechtenstein">Liechtenstein</option>
+					<option value="Lithuania">Lithuania</option>
+					<option value="Luxembourg">Luxembourg</option>
+					<option value="Macau">Macau</option>
+					<option value="Macedonia">Macedonia</option>
+					<option value="Madagascar">Madagascar</option>
+					<option value="Madeira">Madeira</option>
+					<option value="Malawi">Malawi</option>
+					<option value="Malaysia">Malaysia</option>
+					<option value="Maldives">Maldives</option>
+					<option value="Mali">Mali</option>
+					<option value="Malta">Malta</option>
+					<option value="Mauritania">Mauritania</option>
+					<option value="Mauritius">Mauritius</option>
+					<option value="Mexico">Mexico</option>
+					<option value="Moldova">Moldova</option>
+					<option value="Monaco">Monaco</option>
+					<option value="Mongolia">Mongolia</option>
+					<option value="Montenegro">Montenegro</option>
+					<option value="Montserrat">Montserrat</option>
+					<option value="Morocco">Morocco</option>
+					<option value="Mozambique">Mozambique</option>
+					<option value="Myanmar">Myanmar</option>
+					<option value="Namibia">Namibia</option>
+					<option value="Nauru">Nauru</option>
+					<option value="Nepal">Nepal</option>
+					<option value="New Zealand">New Zealand</option>
+					<option value="Nicaragua">Nicaragua</option>
+					<option value="Niger">Niger</option>
+					<option value="Nigeria">Nigeria</option>
+					<option value="Niue">Niue</option>
+					<option value="Norfolk Island">Norfolk Island</option>
+					<option value="North Korea">North Korea</option>
+					<option value="Norway">Norway</option>
+					<option value="Oman">Oman</option>
+					<option value="Pakistan">Pakistan</option>
+					<option value="Palau">Palau</option>
+					<option value="Panama">Panama</option>
+					<option value="Papua New Guinea">Papua New Guinea</option>
+					<option value="Paraguay">Paraguay</option>
+					<option value="Peru">Peru</option>
+					<option value="Poland">Poland</option>
+					<option value="Portugal">Portugal</option>
+					<option value="Puerto Rico">Puerto Rico</option>
+					<option value="Qatar">Qatar</option>
+					<option value="Romania">Romania</option>
+					<option value="Russia">Russia</option>
+					<option value="Rwanda">Rwanda</option>
+					<option value="Saba">Saba</option>
+					<option value="Saint Helena">Saint Helena</option>
+					<option value="Saint Kitts and Nevis">Saint Kitts and Nevis</option>
+					<option value="Saint Lucia">Saint Lucia</option>
+					<option value="Saint Vincent and Grenadines">Saint Vincent and Grenadines</option>
+					<option value="Samoa">Samoa</option>
+					<option value="San Marino">San Marino</option>
+					<option value="Sao Tome and Principe">Sao Tome and Principe</option>
+					<option value="Sark">Sark</option>
+					<option value="Saudi Arabia">Saudi Arabia</option>
+					<option value="Senegal">Senegal</option>
+					<option value="Serbia">Serbia</option>
+					<option value="Sierra Leone">Sierra Leone</option>
+					<option value="Singapore">Singapore</option>
+					<option value="Sint Eustatius">Sint Eustatius</option>
+					<option value="Sint Maarten">Sint Maarten</option>
+					<option value="Slovakia">Slovakia</option>
+					<option value="Slovenia">Slovenia</option>
+					<option value="Somalia">Somalia</option>
+					<option value="South Africa">South Africa</option>
+					<option value="South Georgia and South Sandwich Islands">South Georgia and South Sandwich Islands</option>
+					<option value="South Korea">South Korea</option>
+					<option value="Spain">Spain</option>
+					<option value="Sri Lanka">Sri Lanka</option>
+					<option value="Sudan">Sudan</option>
+					<option value="Suriname">Suriname</option>
+					<option value="Swaziland">Swaziland</option>
+					<option value="Sweden">Sweden</option>
+					<option value="Switzerland">Switzerland</option>
+					<option value="Syria">Syria</option>
+					<option value="Tajikistan">Tajikistan</option>
+					<option value="Tanzania">Tanzania</option>
+					<option value="Thailand">Thailand</option>
+					<option value="Gambia">Gambia</option>
+					<option value="Togo">Togo</option>
+					<option value="Tokelau">Tokelau</option>
+					<option value="Tonga">Tonga</option>
+					<option value="Trinidad and Tobago">Trinidad and Tobago</option>
+					<option value="Tristan da Cunha">Tristan da Cunha</option>
+					<option value="Tunisia">Tunisia</option>
+					<option value="Turkey">Turkey</option>
+					<option value="Turkmenistan">Turkmenistan</option>
+					<option value="Tuvalu">Tuvalu</option>
+					<option value="Uganda">Uganda</option>
+					<option value="Ukraine">Ukraine</option>
+					<option value="Uruguay">Uruguay</option>
+					<option value="Uzbekistan">Uzbekistan</option>
+					<option value="Vanuatu">Vanuatu</option>
+					<option value="Venezuela (state)">Venezuela (state)</option>
+					<option value="Vietnam">Vietnam</option>
+					<option value="Yemen">Yemen</option>
+					<option value="Zambia">Zambia</option>
+					<option value="Zimbabwe">Zimbabwe</option>
+					<option value="Azores">Azores</option>
+					<option value="Bahamas">Bahamas</option>
+					<option value="British Antarctic Territory">British Antarctic Territory</option>
+					<option value="British Indian Ocean Territory">British Indian Ocean Territory</option>
+					<option value="British Virgin Islands">British Virgin Islands</option>
+					<option value="Cayman Islands">Cayman Islands</option>
+					<option value="Central African Republic">Central African Republic</option>
+					<option value="Cocos (Keeling) Islands">Cocos (Keeling) Islands</option>
+					<option value="Comoros">Comoros</option>
+					<option value="Cook Islands">Cook Islands</option>
+					<option value="Czech Republic">Czech Republic</option>
+					<option value="Democratic Republic of Congo">Democratic Republic of Congo</option>
+					<option value="Dominican Republic">Dominican Republic</option>
+					<option value="Falkland Islands">Falkland Islands</option>
+					<option value="Faroe Islands">Faroe Islands</option>
+					<option value="French Southern and Antarctic Lands">French Southern and Antarctic Lands</option>
+					<option value="Isle of Man">Isle of Man</option>
+					<option value="Marshall Islands">Marshall Islands</option>
+					<option value="Netherlands">Netherlands</option>
+					<option value="Netherlands Antilles">Netherlands Antilles</option>
+					<option value="Northern Mariana Islands">Northern Mariana Islands</option>
+					<option value="People's Republic of China">People's Republic of China</option>
+					<option value="Philippines">Philippines</option>
+					<option value="Pitcairn Islands">Pitcairn Islands</option>
+					<option value="Republic of China">Republic of China</option>
+					<option value="Republic of Congo">Republic of Congo</option>
+					<option value="Seychelles">Seychelles</option>
+					<option value="Solomon Islands">Solomon Islands</option>
+					<option value="Turks and Caicos Islands">Turks and Caicos Islands</option>
+					<option value="United Arab Emirates">United Arab Emirates</option>
+					<option value="United Kingdom">United Kingdom</option>
+					<option value="United States">United States</option>
+					<option value="United States Virgin Islands">United States Virgin Islands</option>
+					<option value="Vatican City">Vatican City</option>
+				</select>
+			</label>
+			<label for="source0_type"><span class="t">Type:</span>
+				<select id="source0_type" name="source0_type">
+					<option value="" selected="selected">(choose a source type)</option>
+					<option value="RSS feed">RSS feed</option>
+					<option value="Imagecast">Imagecast</option>
+					<option value="Podcast">Podcast</option>
+					<option value="Videocast">Videocast</option>
+					<option value="Live TV">Live TV</option>
+					<option value="Live Radio">Live Radio</option>
+				</select>
+			</label>
+			<label for="source0_parentalcontrol"><span class="t">Parental control:</span>
+				<select id="source0_parentalcontrol" name="source0_type">
+					<option value="" selected="selected">(choose a parental control level - leave empty for none)</option>
+					<option value="1">1 (lowest)</option>
+					<option value="2">2</option>
+					<option value="3">3</option>
+					<option value="4">4</option>
+					<option value="5">5</option>
+					<option value="6">6</option>
+					<option value="7">7</option>
+					<option value="8">8</option>
+					<option value="9">9 (highest)</option>
+				</select>
+			</label>
+			<label for="source0_favorite"><span class="t">Favorite source:</span>
+				<select id="source0_favorite" name="source0_type">
+					<option value="" selected="selected">(choose if this source is one of your favorites)</option>
+					<option value="Yes">Yes</option>
+					<option value="No">No</option>
+				</select>
+			</label>
+			<div class="clr"></div>
+		</div>
+	</div>
+	<div id="publishers">
+		<p><strong>2. If you want images in the publishers (automatically populated based on your sources), for each one put an image URL</strong></p>
+	</div>
+	<div id="themes">
+		<p><strong>3. If you want images in the themes (automatically populated based on your sources), for each one put an image URL</strong></p>
+	</div>
+	<div id="countries">
+		<p><strong>4. Countries are automatic populated by default, don't need to change</strong></p>
+		<div id="div_country0" class="item">
+			<label for="country0_title"><span class="t">Name:</span>
+				<input id="country0_title" name="country0_title" type="text" disabled="disabled" value="Åland"/>
+			</label>
+			<label for="country0_image"><span class="t">Image URL/Path:</span>
+				<input id="country0_image" name="country0_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Åland.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country1" class="item">
+			<label for="country1_title"><span class="t">Name:</span>
+				<input id="country1_title" name="country1_title" type="text" disabled="disabled" value="Afghanistan"/>
+			</label>
+			<label for="country1_image"><span class="t">Image URL/Path:</span>
+				<input id="country1_image" name="country1_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Afghanistan.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country2" class="item">
+			<label for="country2_title"><span class="t">Name:</span>
+				<input id="country2_title" name="country2_title" type="text" disabled="disabled" value="Albania"/>
+			</label>
+			<label for="country2_image"><span class="t">Image URL/Path:</span>
+				<input id="country2_image" name="country2_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Albania.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country3" class="item">
+			<label for="country3_title"><span class="t">Name:</span>
+				<input id="country3_title" name="country3_title" type="text" disabled="disabled" value="Alderney"/>
+			</label>
+			<label for="country3_image"><span class="t">Image URL/Path:</span>
+				<input id="country3_image" name="country3_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Alderney.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country4" class="item">
+			<label for="country4_title"><span class="t">Name:</span>
+				<input id="country4_title" name="country4_title" type="text" disabled="disabled" value="Algeria"/>
+			</label>
+			<label for="country4_image"><span class="t">Image URL/Path:</span>
+				<input id="country4_image" name="country4_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Algeria.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country5" class="item">
+			<label for="country5_title"><span class="t">Name:</span>
+				<input id="country5_title" name="country5_title" type="text" disabled="disabled" value="American Samoa"/>
+			</label>
+			<label for="country5_image"><span class="t">Image URL/Path:</span>
+				<input id="country5_image" name="country5_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_American_Samoa.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country6" class="item">
+			<label for="country6_title"><span class="t">Name:</span>
+				<input id="country6_title" name="country6_title" type="text" disabled="disabled" value="Andorra"/>
+			</label>
+			<label for="country6_image"><span class="t">Image URL/Path:</span>
+				<input id="country6_image" name="country6_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Andorra.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country7" class="item">
+			<label for="country7_title"><span class="t">Name:</span>
+				<input id="country7_title" name="country7_title" type="text" disabled="disabled" value="Angola"/>
+			</label>
+			<label for="country7_image"><span class="t">Image URL/Path:</span>
+				<input id="country7_image" name="country7_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Angola.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country8" class="item">
+			<label for="country8_title"><span class="t">Name:</span>
+				<input id="country8_title" name="country8_title" type="text" disabled="disabled" value="Anguilla"/>
+			</label>
+			<label for="country8_image"><span class="t">Image URL/Path:</span>
+				<input id="country8_image" name="country8_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Anguilla.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country9" class="item">
+			<label for="country9_title"><span class="t">Name:</span>
+				<input id="country9_title" name="country9_title" type="text" disabled="disabled" value="Antigua and Barbuda"/>
+			</label>
+			<label for="country9_image"><span class="t">Image URL/Path:</span>
+				<input id="country9_image" name="country9_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Antigua_and_Barbuda.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country10" class="item">
+			<label for="country10_title"><span class="t">Name:</span>
+				<input id="country10_title" name="country10_title" type="text" disabled="disabled" value="Argentina"/>
+			</label>
+			<label for="country10_image"><span class="t">Image URL/Path:</span>
+				<input id="country10_image" name="country10_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Argentina.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country11" class="item">
+			<label for="country11_title"><span class="t">Name:</span>
+				<input id="country11_title" name="country11_title" type="text" disabled="disabled" value="Armenia"/>
+			</label>
+			<label for="country11_image"><span class="t">Image URL/Path:</span>
+				<input id="country11_image" name="country11_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Armenia.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country12" class="item">
+			<label for="country12_title"><span class="t">Name:</span>
+				<input id="country12_title" name="country12_title" type="text" disabled="disabled" value="Aruba"/>
+			</label>
+			<label for="country12_image"><span class="t">Image URL/Path:</span>
+				<input id="country12_image" name="country12_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Aruba.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country13" class="item">
+			<label for="country13_title"><span class="t">Name:</span>
+				<input id="country13_title" name="country13_title" type="text" disabled="disabled" value="Australia"/>
+			</label>
+			<label for="country13_image"><span class="t">Image URL/Path:</span>
+				<input id="country13_image" name="country13_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Australia.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country14" class="item">
+			<label for="country14_title"><span class="t">Name:</span>
+				<input id="country14_title" name="country14_title" type="text" disabled="disabled" value="Austria"/>
+			</label>
+			<label for="country14_image"><span class="t">Image URL/Path:</span>
+				<input id="country14_image" name="country14_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Austria.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country15" class="item">
+			<label for="country15_title"><span class="t">Name:</span>
+				<input id="country15_title" name="country15_title" type="text" disabled="disabled" value="Azerbaijan"/>
+			</label>
+			<label for="country15_image"><span class="t">Image URL/Path:</span>
+				<input id="country15_image" name="country15_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Azerbaijan.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country16" class="item">
+			<label for="country16_title"><span class="t">Name:</span>
+				<input id="country16_title" name="country16_title" type="text" disabled="disabled" value="Bahrain"/>
+			</label>
+			<label for="country16_image"><span class="t">Image URL/Path:</span>
+				<input id="country16_image" name="country16_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Bahrain.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country17" class="item">
+			<label for="country17_title"><span class="t">Name:</span>
+				<input id="country17_title" name="country17_title" type="text" disabled="disabled" value="Bangladesh"/>
+			</label>
+			<label for="country17_image"><span class="t">Image URL/Path:</span>
+				<input id="country17_image" name="country17_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Bangladesh.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country18" class="item">
+			<label for="country18_title"><span class="t">Name:</span>
+				<input id="country18_title" name="country18_title" type="text" disabled="disabled" value="Barbados"/>
+			</label>
+			<label for="country18_image"><span class="t">Image URL/Path:</span>
+				<input id="country18_image" name="country18_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Barbados.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country19" class="item">
+			<label for="country19_title"><span class="t">Name:</span>
+				<input id="country19_title" name="country19_title" type="text" disabled="disabled" value="Belarus"/>
+			</label>
+			<label for="country19_image"><span class="t">Image URL/Path:</span>
+				<input id="country19_image" name="country19_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Belarus.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country20" class="item">
+			<label for="country20_title"><span class="t">Name:</span>
+				<input id="country20_title" name="country20_title" type="text" disabled="disabled" value="Belgium"/>
+			</label>
+			<label for="country20_image"><span class="t">Image URL/Path:</span>
+				<input id="country20_image" name="country20_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Belgium.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country21" class="item">
+			<label for="country21_title"><span class="t">Name:</span>
+				<input id="country21_title" name="country21_title" type="text" disabled="disabled" value="Belize"/>
+			</label>
+			<label for="country21_image"><span class="t">Image URL/Path:</span>
+				<input id="country21_image" name="country21_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Belize.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country22" class="item">
+			<label for="country22_title"><span class="t">Name:</span>
+				<input id="country22_title" name="country22_title" type="text" disabled="disabled" value="Benin"/>
+			</label>
+			<label for="country22_image"><span class="t">Image URL/Path:</span>
+				<input id="country22_image" name="country22_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Benin.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country23" class="item">
+			<label for="country23_title"><span class="t">Name:</span>
+				<input id="country23_title" name="country23_title" type="text" disabled="disabled" value="Bermuda"/>
+			</label>
+			<label for="country23_image"><span class="t">Image URL/Path:</span>
+				<input id="country23_image" name="country23_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Bermuda.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country24" class="item">
+			<label for="country24_title"><span class="t">Name:</span>
+				<input id="country24_title" name="country24_title" type="text" disabled="disabled" value="Bhutan"/>
+			</label>
+			<label for="country24_image"><span class="t">Image URL/Path:</span>
+				<input id="country24_image" name="country24_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Bhutan.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country25" class="item">
+			<label for="country25_title"><span class="t">Name:</span>
+				<input id="country25_title" name="country25_title" type="text" disabled="disabled" value="Bolivia (state)"/>
+			</label>
+			<label for="country25_image"><span class="t">Image URL/Path:</span>
+				<input id="country25_image" name="country25_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Bolivia_(state).png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country26" class="item">
+			<label for="country26_title"><span class="t">Name:</span>
+				<input id="country26_title" name="country26_title" type="text" disabled="disabled" value="Bonaire"/>
+			</label>
+			<label for="country26_image"><span class="t">Image URL/Path:</span>
+				<input id="country26_image" name="country26_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Bonaire.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country27" class="item">
+			<label for="country27_title"><span class="t">Name:</span>
+				<input id="country27_title" name="country27_title" type="text" disabled="disabled" value="Bosnia and Herzegovina"/>
+			</label>
+			<label for="country27_image"><span class="t">Image URL/Path:</span>
+				<input id="country27_image" name="country27_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Bosnia_and_Herzegovina.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country28" class="item">
+			<label for="country28_title"><span class="t">Name:</span>
+				<input id="country28_title" name="country28_title" type="text" disabled="disabled" value="Botswana"/>
+			</label>
+			<label for="country28_image"><span class="t">Image URL/Path:</span>
+				<input id="country28_image" name="country28_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Botswana.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country29" class="item">
+			<label for="country29_title"><span class="t">Name:</span>
+				<input id="country29_title" name="country29_title" type="text" disabled="disabled" value="Brazil"/>
+			</label>
+			<label for="country29_image"><span class="t">Image URL/Path:</span>
+				<input id="country29_image" name="country29_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Brazil.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country30" class="item">
+			<label for="country30_title"><span class="t">Name:</span>
+				<input id="country30_title" name="country30_title" type="text" disabled="disabled" value="Brunei"/>
+			</label>
+			<label for="country30_image"><span class="t">Image URL/Path:</span>
+				<input id="country30_image" name="country30_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Brunei.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country31" class="item">
+			<label for="country31_title"><span class="t">Name:</span>
+				<input id="country31_title" name="country31_title" type="text" disabled="disabled" value="Bulgaria"/>
+			</label>
+			<label for="country31_image"><span class="t">Image URL/Path:</span>
+				<input id="country31_image" name="country31_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Bulgaria.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country32" class="item">
+			<label for="country32_title"><span class="t">Name:</span>
+				<input id="country32_title" name="country32_title" type="text" disabled="disabled" value="Burkina Faso"/>
+			</label>
+			<label for="country32_image"><span class="t">Image URL/Path:</span>
+				<input id="country32_image" name="country32_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Burkina_Faso.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country33" class="item">
+			<label for="country33_title"><span class="t">Name:</span>
+				<input id="country33_title" name="country33_title" type="text" disabled="disabled" value="Burundi"/>
+			</label>
+			<label for="country33_image"><span class="t">Image URL/Path:</span>
+				<input id="country33_image" name="country33_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Burundi.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country34" class="item">
+			<label for="country34_title"><span class="t">Name:</span>
+				<input id="country34_title" name="country34_title" type="text" disabled="disabled" value="Cambodia"/>
+			</label>
+			<label for="country34_image"><span class="t">Image URL/Path:</span>
+				<input id="country34_image" name="country34_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Cambodia.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country35" class="item">
+			<label for="country35_title"><span class="t">Name:</span>
+				<input id="country35_title" name="country35_title" type="text" disabled="disabled" value="Cameroon"/>
+			</label>
+			<label for="country35_image"><span class="t">Image URL/Path:</span>
+				<input id="country35_image" name="country35_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Cameroon.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country36" class="item">
+			<label for="country36_title"><span class="t">Name:</span>
+				<input id="country36_title" name="country36_title" type="text" disabled="disabled" value="Canada"/>
+			</label>
+			<label for="country36_image"><span class="t">Image URL/Path:</span>
+				<input id="country36_image" name="country36_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Canada.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country37" class="item">
+			<label for="country37_title"><span class="t">Name:</span>
+				<input id="country37_title" name="country37_title" type="text" disabled="disabled" value="Cape Verde"/>
+			</label>
+			<label for="country37_image"><span class="t">Image URL/Path:</span>
+				<input id="country37_image" name="country37_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Cape_Verde.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country38" class="item">
+			<label for="country38_title"><span class="t">Name:</span>
+				<input id="country38_title" name="country38_title" type="text" disabled="disabled" value="Chad"/>
+			</label>
+			<label for="country38_image"><span class="t">Image URL/Path:</span>
+				<input id="country38_image" name="country38_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Chad.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country39" class="item">
+			<label for="country39_title"><span class="t">Name:</span>
+				<input id="country39_title" name="country39_title" type="text" disabled="disabled" value="Chile"/>
+			</label>
+			<label for="country39_image"><span class="t">Image URL/Path:</span>
+				<input id="country39_image" name="country39_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Chile.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country40" class="item">
+			<label for="country40_title"><span class="t">Name:</span>
+				<input id="country40_title" name="country40_title" type="text" disabled="disabled" value="Christmas Island"/>
+			</label>
+			<label for="country40_image"><span class="t">Image URL/Path:</span>
+				<input id="country40_image" name="country40_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Christmas_Island.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country41" class="item">
+			<label for="country41_title"><span class="t">Name:</span>
+				<input id="country41_title" name="country41_title" type="text" disabled="disabled" value="Colombia"/>
+			</label>
+			<label for="country41_image"><span class="t">Image URL/Path:</span>
+				<input id="country41_image" name="country41_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Colombia.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country42" class="item">
+			<label for="country42_title"><span class="t">Name:</span>
+				<input id="country42_title" name="country42_title" type="text" disabled="disabled" value="Costa Rica"/>
+			</label>
+			<label for="country42_image"><span class="t">Image URL/Path:</span>
+				<input id="country42_image" name="country42_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Costa_Rica.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country43" class="item">
+			<label for="country43_title"><span class="t">Name:</span>
+				<input id="country43_title" name="country43_title" type="text" disabled="disabled" value="Cote d'Ivoire"/>
+			</label>
+			<label for="country43_image"><span class="t">Image URL/Path:</span>
+				<input id="country43_image" name="country43_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Cote_d'Ivoire.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country44" class="item">
+			<label for="country44_title"><span class="t">Name:</span>
+				<input id="country44_title" name="country44_title" type="text" disabled="disabled" value="Croatia"/>
+			</label>
+			<label for="country44_image"><span class="t">Image URL/Path:</span>
+				<input id="country44_image" name="country44_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Croatia.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country45" class="item">
+			<label for="country45_title"><span class="t">Name:</span>
+				<input id="country45_title" name="country45_title" type="text" disabled="disabled" value="Cuba"/>
+			</label>
+			<label for="country45_image"><span class="t">Image URL/Path:</span>
+				<input id="country45_image" name="country45_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Cuba.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country46" class="item">
+			<label for="country46_title"><span class="t">Name:</span>
+				<input id="country46_title" name="country46_title" type="text" disabled="disabled" value="Curaçao"/>
+			</label>
+			<label for="country46_image"><span class="t">Image URL/Path:</span>
+				<input id="country46_image" name="country46_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Curaçao.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country47" class="item">
+			<label for="country47_title"><span class="t">Name:</span>
+				<input id="country47_title" name="country47_title" type="text" disabled="disabled" value="Cyprus"/>
+			</label>
+			<label for="country47_image"><span class="t">Image URL/Path:</span>
+				<input id="country47_image" name="country47_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Cyprus.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country48" class="item">
+			<label for="country48_title"><span class="t">Name:</span>
+				<input id="country48_title" name="country48_title" type="text" disabled="disabled" value="Denmark"/>
+			</label>
+			<label for="country48_image"><span class="t">Image URL/Path:</span>
+				<input id="country48_image" name="country48_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Denmark.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country49" class="item">
+			<label for="country49_title"><span class="t">Name:</span>
+				<input id="country49_title" name="country49_title" type="text" disabled="disabled" value="Djibouti"/>
+			</label>
+			<label for="country49_image"><span class="t">Image URL/Path:</span>
+				<input id="country49_image" name="country49_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Djibouti.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country50" class="item">
+			<label for="country50_title"><span class="t">Name:</span>
+				<input id="country50_title" name="country50_title" type="text" disabled="disabled" value="Dominica"/>
+			</label>
+			<label for="country50_image"><span class="t">Image URL/Path:</span>
+				<input id="country50_image" name="country50_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Dominica.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country51" class="item">
+			<label for="country51_title"><span class="t">Name:</span>
+				<input id="country51_title" name="country51_title" type="text" disabled="disabled" value="East Timor"/>
+			</label>
+			<label for="country51_image"><span class="t">Image URL/Path:</span>
+				<input id="country51_image" name="country51_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_East_Timor.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country52" class="item">
+			<label for="country52_title"><span class="t">Name:</span>
+				<input id="country52_title" name="country52_title" type="text" disabled="disabled" value="Ecuador"/>
+			</label>
+			<label for="country52_image"><span class="t">Image URL/Path:</span>
+				<input id="country52_image" name="country52_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Ecuador.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country53" class="item">
+			<label for="country53_title"><span class="t">Name:</span>
+				<input id="country53_title" name="country53_title" type="text" disabled="disabled" value="Egypt"/>
+			</label>
+			<label for="country53_image"><span class="t">Image URL/Path:</span>
+				<input id="country53_image" name="country53_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Egypt.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country54" class="item">
+			<label for="country54_title"><span class="t">Name:</span>
+				<input id="country54_title" name="country54_title" type="text" disabled="disabled" value="El Salvador"/>
+			</label>
+			<label for="country54_image"><span class="t">Image URL/Path:</span>
+				<input id="country54_image" name="country54_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_El_Salvador.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country55" class="item">
+			<label for="country55_title"><span class="t">Name:</span>
+				<input id="country55_title" name="country55_title" type="text" disabled="disabled" value="Equatorial Guinea"/>
+			</label>
+			<label for="country55_image"><span class="t">Image URL/Path:</span>
+				<input id="country55_image" name="country55_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Equatorial_Guinea.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country56" class="item">
+			<label for="country56_title"><span class="t">Name:</span>
+				<input id="country56_title" name="country56_title" type="text" disabled="disabled" value="Eritrea"/>
+			</label>
+			<label for="country56_image"><span class="t">Image URL/Path:</span>
+				<input id="country56_image" name="country56_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Eritrea.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country57" class="item">
+			<label for="country57_title"><span class="t">Name:</span>
+				<input id="country57_title" name="country57_title" type="text" disabled="disabled" value="Estonia"/>
+			</label>
+			<label for="country57_image"><span class="t">Image URL/Path:</span>
+				<input id="country57_image" name="country57_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Estonia.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country58" class="item">
+			<label for="country58_title"><span class="t">Name:</span>
+				<input id="country58_title" name="country58_title" type="text" disabled="disabled" value="Ethiopia"/>
+			</label>
+			<label for="country58_image"><span class="t">Image URL/Path:</span>
+				<input id="country58_image" name="country58_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Ethiopia.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country59" class="item">
+			<label for="country59_title"><span class="t">Name:</span>
+				<input id="country59_title" name="country59_title" type="text" disabled="disabled" value="Federated States of Micronesia"/>
+			</label>
+			<label for="country59_image"><span class="t">Image URL/Path:</span>
+				<input id="country59_image" name="country59_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Federated_States_of_Micronesia.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country60" class="item">
+			<label for="country60_title"><span class="t">Name:</span>
+				<input id="country60_title" name="country60_title" type="text" disabled="disabled" value="Fiji"/>
+			</label>
+			<label for="country60_image"><span class="t">Image URL/Path:</span>
+				<input id="country60_image" name="country60_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Fiji.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country61" class="item">
+			<label for="country61_title"><span class="t">Name:</span>
+				<input id="country61_title" name="country61_title" type="text" disabled="disabled" value="Finland"/>
+			</label>
+			<label for="country61_image"><span class="t">Image URL/Path:</span>
+				<input id="country61_image" name="country61_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Finland.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country62" class="item">
+			<label for="country62_title"><span class="t">Name:</span>
+				<input id="country62_title" name="country62_title" type="text" disabled="disabled" value="France"/>
+			</label>
+			<label for="country62_image"><span class="t">Image URL/Path:</span>
+				<input id="country62_image" name="country62_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_France.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country63" class="item">
+			<label for="country63_title"><span class="t">Name:</span>
+				<input id="country63_title" name="country63_title" type="text" disabled="disabled" value="French Polynesia"/>
+			</label>
+			<label for="country63_image"><span class="t">Image URL/Path:</span>
+				<input id="country63_image" name="country63_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_French_Polynesia.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country64" class="item">
+			<label for="country64_title"><span class="t">Name:</span>
+				<input id="country64_title" name="country64_title" type="text" disabled="disabled" value="Gabon"/>
+			</label>
+			<label for="country64_image"><span class="t">Image URL/Path:</span>
+				<input id="country64_image" name="country64_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Gabon.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country65" class="item">
+			<label for="country65_title"><span class="t">Name:</span>
+				<input id="country65_title" name="country65_title" type="text" disabled="disabled" value="Georgia"/>
+			</label>
+			<label for="country65_image"><span class="t">Image URL/Path:</span>
+				<input id="country65_image" name="country65_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Georgia.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country66" class="item">
+			<label for="country66_title"><span class="t">Name:</span>
+				<input id="country66_title" name="country66_title" type="text" disabled="disabled" value="Germany"/>
+			</label>
+			<label for="country66_image"><span class="t">Image URL/Path:</span>
+				<input id="country66_image" name="country66_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Germany.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country67" class="item">
+			<label for="country67_title"><span class="t">Name:</span>
+				<input id="country67_title" name="country67_title" type="text" disabled="disabled" value="Ghana"/>
+			</label>
+			<label for="country67_image"><span class="t">Image URL/Path:</span>
+				<input id="country67_image" name="country67_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Ghana.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country68" class="item">
+			<label for="country68_title"><span class="t">Name:</span>
+				<input id="country68_title" name="country68_title" type="text" disabled="disabled" value="Gibraltar"/>
+			</label>
+			<label for="country68_image"><span class="t">Image URL/Path:</span>
+				<input id="country68_image" name="country68_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Gibraltar.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country69" class="item">
+			<label for="country69_title"><span class="t">Name:</span>
+				<input id="country69_title" name="country69_title" type="text" disabled="disabled" value="Greece"/>
+			</label>
+			<label for="country69_image"><span class="t">Image URL/Path:</span>
+				<input id="country69_image" name="country69_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Greece.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country70" class="item">
+			<label for="country70_title"><span class="t">Name:</span>
+				<input id="country70_title" name="country70_title" type="text" disabled="disabled" value="Greenland"/>
+			</label>
+			<label for="country70_image"><span class="t">Image URL/Path:</span>
+				<input id="country70_image" name="country70_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Greenland.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country71" class="item">
+			<label for="country71_title"><span class="t">Name:</span>
+				<input id="country71_title" name="country71_title" type="text" disabled="disabled" value="Grenada"/>
+			</label>
+			<label for="country71_image"><span class="t">Image URL/Path:</span>
+				<input id="country71_image" name="country71_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Grenada.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country72" class="item">
+			<label for="country72_title"><span class="t">Name:</span>
+				<input id="country72_title" name="country72_title" type="text" disabled="disabled" value="Guam"/>
+			</label>
+			<label for="country72_image"><span class="t">Image URL/Path:</span>
+				<input id="country72_image" name="country72_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Guam.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country73" class="item">
+			<label for="country73_title"><span class="t">Name:</span>
+				<input id="country73_title" name="country73_title" type="text" disabled="disabled" value="Guatemala"/>
+			</label>
+			<label for="country73_image"><span class="t">Image URL/Path:</span>
+				<input id="country73_image" name="country73_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Guatemala.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country74" class="item">
+			<label for="country74_title"><span class="t">Name:</span>
+				<input id="country74_title" name="country74_title" type="text" disabled="disabled" value="Guernsey"/>
+			</label>
+			<label for="country74_image"><span class="t">Image URL/Path:</span>
+				<input id="country74_image" name="country74_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Guernsey.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country75" class="item">
+			<label for="country75_title"><span class="t">Name:</span>
+				<input id="country75_title" name="country75_title" type="text" disabled="disabled" value="Guinea-Bissau"/>
+			</label>
+			<label for="country75_image"><span class="t">Image URL/Path:</span>
+				<input id="country75_image" name="country75_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Guinea-Bissau.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country76" class="item">
+			<label for="country76_title"><span class="t">Name:</span>
+				<input id="country76_title" name="country76_title" type="text" disabled="disabled" value="Guinea"/>
+			</label>
+			<label for="country76_image"><span class="t">Image URL/Path:</span>
+				<input id="country76_image" name="country76_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Guinea.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country77" class="item">
+			<label for="country77_title"><span class="t">Name:</span>
+				<input id="country77_title" name="country77_title" type="text" disabled="disabled" value="Guyana"/>
+			</label>
+			<label for="country77_image"><span class="t">Image URL/Path:</span>
+				<input id="country77_image" name="country77_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Guyana.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country78" class="item">
+			<label for="country78_title"><span class="t">Name:</span>
+				<input id="country78_title" name="country78_title" type="text" disabled="disabled" value="Haiti"/>
+			</label>
+			<label for="country78_image"><span class="t">Image URL/Path:</span>
+				<input id="country78_image" name="country78_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Haiti.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country79" class="item">
+			<label for="country79_title"><span class="t">Name:</span>
+				<input id="country79_title" name="country79_title" type="text" disabled="disabled" value="Herm"/>
+			</label>
+			<label for="country79_image"><span class="t">Image URL/Path:</span>
+				<input id="country79_image" name="country79_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Herm.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country80" class="item">
+			<label for="country80_title"><span class="t">Name:</span>
+				<input id="country80_title" name="country80_title" type="text" disabled="disabled" value="Honduras"/>
+			</label>
+			<label for="country80_image"><span class="t">Image URL/Path:</span>
+				<input id="country80_image" name="country80_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Honduras.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country81" class="item">
+			<label for="country81_title"><span class="t">Name:</span>
+				<input id="country81_title" name="country81_title" type="text" disabled="disabled" value="Hong Kong"/>
+			</label>
+			<label for="country81_image"><span class="t">Image URL/Path:</span>
+				<input id="country81_image" name="country81_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Hong_Kong.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country82" class="item">
+			<label for="country82_title"><span class="t">Name:</span>
+				<input id="country82_title" name="country82_title" type="text" disabled="disabled" value="Hungary"/>
+			</label>
+			<label for="country82_image"><span class="t">Image URL/Path:</span>
+				<input id="country82_image" name="country82_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Hungary.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country83" class="item">
+			<label for="country83_title"><span class="t">Name:</span>
+				<input id="country83_title" name="country83_title" type="text" disabled="disabled" value="Iceland"/>
+			</label>
+			<label for="country83_image"><span class="t">Image URL/Path:</span>
+				<input id="country83_image" name="country83_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Iceland.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country84" class="item">
+			<label for="country84_title"><span class="t">Name:</span>
+				<input id="country84_title" name="country84_title" type="text" disabled="disabled" value="India"/>
+			</label>
+			<label for="country84_image"><span class="t">Image URL/Path:</span>
+				<input id="country84_image" name="country84_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_India.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country85" class="item">
+			<label for="country85_title"><span class="t">Name:</span>
+				<input id="country85_title" name="country85_title" type="text" disabled="disabled" value="Indonesia"/>
+			</label>
+			<label for="country85_image"><span class="t">Image URL/Path:</span>
+				<input id="country85_image" name="country85_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Indonesia.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country86" class="item">
+			<label for="country86_title"><span class="t">Name:</span>
+				<input id="country86_title" name="country86_title" type="text" disabled="disabled" value="Iran"/>
+			</label>
+			<label for="country86_image"><span class="t">Image URL/Path:</span>
+				<input id="country86_image" name="country86_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Iran.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country87" class="item">
+			<label for="country87_title"><span class="t">Name:</span>
+				<input id="country87_title" name="country87_title" type="text" disabled="disabled" value="Iraq"/>
+			</label>
+			<label for="country87_image"><span class="t">Image URL/Path:</span>
+				<input id="country87_image" name="country87_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Iraq.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country88" class="item">
+			<label for="country88_title"><span class="t">Name:</span>
+				<input id="country88_title" name="country88_title" type="text" disabled="disabled" value="Ireland"/>
+			</label>
+			<label for="country88_image"><span class="t">Image URL/Path:</span>
+				<input id="country88_image" name="country88_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Ireland.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country89" class="item">
+			<label for="country89_title"><span class="t">Name:</span>
+				<input id="country89_title" name="country89_title" type="text" disabled="disabled" value="Israel"/>
+			</label>
+			<label for="country89_image"><span class="t">Image URL/Path:</span>
+				<input id="country89_image" name="country89_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Israel.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country90" class="item">
+			<label for="country90_title"><span class="t">Name:</span>
+				<input id="country90_title" name="country90_title" type="text" disabled="disabled" value="Italy"/>
+			</label>
+			<label for="country90_image"><span class="t">Image URL/Path:</span>
+				<input id="country90_image" name="country90_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Italy.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country91" class="item">
+			<label for="country91_title"><span class="t">Name:</span>
+				<input id="country91_title" name="country91_title" type="text" disabled="disabled" value="Jamaica"/>
+			</label>
+			<label for="country91_image"><span class="t">Image URL/Path:</span>
+				<input id="country91_image" name="country91_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Jamaica.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country92" class="item">
+			<label for="country92_title"><span class="t">Name:</span>
+				<input id="country92_title" name="country92_title" type="text" disabled="disabled" value="Japan"/>
+			</label>
+			<label for="country92_image"><span class="t">Image URL/Path:</span>
+				<input id="country92_image" name="country92_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Japan.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country93" class="item">
+			<label for="country93_title"><span class="t">Name:</span>
+				<input id="country93_title" name="country93_title" type="text" disabled="disabled" value="Jersey"/>
+			</label>
+			<label for="country93_image"><span class="t">Image URL/Path:</span>
+				<input id="country93_image" name="country93_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Jersey.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country94" class="item">
+			<label for="country94_title"><span class="t">Name:</span>
+				<input id="country94_title" name="country94_title" type="text" disabled="disabled" value="Jordan"/>
+			</label>
+			<label for="country94_image"><span class="t">Image URL/Path:</span>
+				<input id="country94_image" name="country94_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Jordan.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country95" class="item">
+			<label for="country95_title"><span class="t">Name:</span>
+				<input id="country95_title" name="country95_title" type="text" disabled="disabled" value="Kazakhstan"/>
+			</label>
+			<label for="country95_image"><span class="t">Image URL/Path:</span>
+				<input id="country95_image" name="country95_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Kazakhstan.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country96" class="item">
+			<label for="country96_title"><span class="t">Name:</span>
+				<input id="country96_title" name="country96_title" type="text" disabled="disabled" value="Kenya"/>
+			</label>
+			<label for="country96_image"><span class="t">Image URL/Path:</span>
+				<input id="country96_image" name="country96_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Kenya.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country97" class="item">
+			<label for="country97_title"><span class="t">Name:</span>
+				<input id="country97_title" name="country97_title" type="text" disabled="disabled" value="Kiribati"/>
+			</label>
+			<label for="country97_image"><span class="t">Image URL/Path:</span>
+				<input id="country97_image" name="country97_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Kiribati.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country98" class="item">
+			<label for="country98_title"><span class="t">Name:</span>
+				<input id="country98_title" name="country98_title" type="text" disabled="disabled" value="Kosovo"/>
+			</label>
+			<label for="country98_image"><span class="t">Image URL/Path:</span>
+				<input id="country98_image" name="country98_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Kosovo.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country99" class="item">
+			<label for="country99_title"><span class="t">Name:</span>
+				<input id="country99_title" name="country99_title" type="text" disabled="disabled" value="Kuwait"/>
+			</label>
+			<label for="country99_image"><span class="t">Image URL/Path:</span>
+				<input id="country99_image" name="country99_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Kuwait.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country100" class="item">
+			<label for="country100_title"><span class="t">Name:</span>
+				<input id="country100_title" name="country100_title" type="text" disabled="disabled" value="Kyrgyzstan"/>
+			</label>
+			<label for="country100_image"><span class="t">Image URL/Path:</span>
+				<input id="country100_image" name="country100_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Kyrgyzstan.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country101" class="item">
+			<label for="country101_title"><span class="t">Name:</span>
+				<input id="country101_title" name="country101_title" type="text" disabled="disabled" value="Laos"/>
+			</label>
+			<label for="country101_image"><span class="t">Image URL/Path:</span>
+				<input id="country101_image" name="country101_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Laos.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country102" class="item">
+			<label for="country102_title"><span class="t">Name:</span>
+				<input id="country102_title" name="country102_title" type="text" disabled="disabled" value="Latvia"/>
+			</label>
+			<label for="country102_image"><span class="t">Image URL/Path:</span>
+				<input id="country102_image" name="country102_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Latvia.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country103" class="item">
+			<label for="country103_title"><span class="t">Name:</span>
+				<input id="country103_title" name="country103_title" type="text" disabled="disabled" value="Lebanon"/>
+			</label>
+			<label for="country103_image"><span class="t">Image URL/Path:</span>
+				<input id="country103_image" name="country103_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Lebanon.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country104" class="item">
+			<label for="country104_title"><span class="t">Name:</span>
+				<input id="country104_title" name="country104_title" type="text" disabled="disabled" value="Lesotho"/>
+			</label>
+			<label for="country104_image"><span class="t">Image URL/Path:</span>
+				<input id="country104_image" name="country104_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Lesotho.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country105" class="item">
+			<label for="country105_title"><span class="t">Name:</span>
+				<input id="country105_title" name="country105_title" type="text" disabled="disabled" value="Liberia"/>
+			</label>
+			<label for="country105_image"><span class="t">Image URL/Path:</span>
+				<input id="country105_image" name="country105_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Liberia.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country106" class="item">
+			<label for="country106_title"><span class="t">Name:</span>
+				<input id="country106_title" name="country106_title" type="text" disabled="disabled" value="Libya"/>
+			</label>
+			<label for="country106_image"><span class="t">Image URL/Path:</span>
+				<input id="country106_image" name="country106_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Libya.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country107" class="item">
+			<label for="country107_title"><span class="t">Name:</span>
+				<input id="country107_title" name="country107_title" type="text" disabled="disabled" value="Liechtenstein"/>
+			</label>
+			<label for="country107_image"><span class="t">Image URL/Path:</span>
+				<input id="country107_image" name="country107_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Liechtenstein.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country108" class="item">
+			<label for="country108_title"><span class="t">Name:</span>
+				<input id="country108_title" name="country108_title" type="text" disabled="disabled" value="Lithuania"/>
+			</label>
+			<label for="country108_image"><span class="t">Image URL/Path:</span>
+				<input id="country108_image" name="country108_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Lithuania.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country109" class="item">
+			<label for="country109_title"><span class="t">Name:</span>
+				<input id="country109_title" name="country109_title" type="text" disabled="disabled" value="Luxembourg"/>
+			</label>
+			<label for="country109_image"><span class="t">Image URL/Path:</span>
+				<input id="country109_image" name="country109_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Luxembourg.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country110" class="item">
+			<label for="country110_title"><span class="t">Name:</span>
+				<input id="country110_title" name="country110_title" type="text" disabled="disabled" value="Macau"/>
+			</label>
+			<label for="country110_image"><span class="t">Image URL/Path:</span>
+				<input id="country110_image" name="country110_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Macau.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country111" class="item">
+			<label for="country111_title"><span class="t">Name:</span>
+				<input id="country111_title" name="country111_title" type="text" disabled="disabled" value="Macedonia"/>
+			</label>
+			<label for="country111_image"><span class="t">Image URL/Path:</span>
+				<input id="country111_image" name="country111_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Macedonia.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country112" class="item">
+			<label for="country112_title"><span class="t">Name:</span>
+				<input id="country112_title" name="country112_title" type="text" disabled="disabled" value="Madagascar"/>
+			</label>
+			<label for="country112_image"><span class="t">Image URL/Path:</span>
+				<input id="country112_image" name="country112_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Madagascar.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country113" class="item">
+			<label for="country113_title"><span class="t">Name:</span>
+				<input id="country113_title" name="country113_title" type="text" disabled="disabled" value="Madeira"/>
+			</label>
+			<label for="country113_image"><span class="t">Image URL/Path:</span>
+				<input id="country113_image" name="country113_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Madeira.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country114" class="item">
+			<label for="country114_title"><span class="t">Name:</span>
+				<input id="country114_title" name="country114_title" type="text" disabled="disabled" value="Malawi"/>
+			</label>
+			<label for="country114_image"><span class="t">Image URL/Path:</span>
+				<input id="country114_image" name="country114_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Malawi.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country115" class="item">
+			<label for="country115_title"><span class="t">Name:</span>
+				<input id="country115_title" name="country115_title" type="text" disabled="disabled" value="Malaysia"/>
+			</label>
+			<label for="country115_image"><span class="t">Image URL/Path:</span>
+				<input id="country115_image" name="country115_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Malaysia.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country116" class="item">
+			<label for="country116_title"><span class="t">Name:</span>
+				<input id="country116_title" name="country116_title" type="text" disabled="disabled" value="Maldives"/>
+			</label>
+			<label for="country116_image"><span class="t">Image URL/Path:</span>
+				<input id="country116_image" name="country116_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Maldives.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country117" class="item">
+			<label for="country117_title"><span class="t">Name:</span>
+				<input id="country117_title" name="country117_title" type="text" disabled="disabled" value="Mali"/>
+			</label>
+			<label for="country117_image"><span class="t">Image URL/Path:</span>
+				<input id="country117_image" name="country117_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Mali.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country118" class="item">
+			<label for="country118_title"><span class="t">Name:</span>
+				<input id="country118_title" name="country118_title" type="text" disabled="disabled" value="Malta"/>
+			</label>
+			<label for="country118_image"><span class="t">Image URL/Path:</span>
+				<input id="country118_image" name="country118_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Malta.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country119" class="item">
+			<label for="country119_title"><span class="t">Name:</span>
+				<input id="country119_title" name="country119_title" type="text" disabled="disabled" value="Mauritania"/>
+			</label>
+			<label for="country119_image"><span class="t">Image URL/Path:</span>
+				<input id="country119_image" name="country119_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Mauritania.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country120" class="item">
+			<label for="country120_title"><span class="t">Name:</span>
+				<input id="country120_title" name="country120_title" type="text" disabled="disabled" value="Mauritius"/>
+			</label>
+			<label for="country120_image"><span class="t">Image URL/Path:</span>
+				<input id="country120_image" name="country120_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Mauritius.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country121" class="item">
+			<label for="country121_title"><span class="t">Name:</span>
+				<input id="country121_title" name="country121_title" type="text" disabled="disabled" value="Mexico"/>
+			</label>
+			<label for="country121_image"><span class="t">Image URL/Path:</span>
+				<input id="country121_image" name="country121_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Mexico.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country122" class="item">
+			<label for="country122_title"><span class="t">Name:</span>
+				<input id="country122_title" name="country122_title" type="text" disabled="disabled" value="Moldova"/>
+			</label>
+			<label for="country122_image"><span class="t">Image URL/Path:</span>
+				<input id="country122_image" name="country122_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Moldova.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country123" class="item">
+			<label for="country123_title"><span class="t">Name:</span>
+				<input id="country123_title" name="country123_title" type="text" disabled="disabled" value="Monaco"/>
+			</label>
+			<label for="country123_image"><span class="t">Image URL/Path:</span>
+				<input id="country123_image" name="country123_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Monaco.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country124" class="item">
+			<label for="country124_title"><span class="t">Name:</span>
+				<input id="country124_title" name="country124_title" type="text" disabled="disabled" value="Mongolia"/>
+			</label>
+			<label for="country124_image"><span class="t">Image URL/Path:</span>
+				<input id="country124_image" name="country124_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Mongolia.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country125" class="item">
+			<label for="country125_title"><span class="t">Name:</span>
+				<input id="country125_title" name="country125_title" type="text" disabled="disabled" value="Montenegro"/>
+			</label>
+			<label for="country125_image"><span class="t">Image URL/Path:</span>
+				<input id="country125_image" name="country125_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Montenegro.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country126" class="item">
+			<label for="country126_title"><span class="t">Name:</span>
+				<input id="country126_title" name="country126_title" type="text" disabled="disabled" value="Montserrat"/>
+			</label>
+			<label for="country126_image"><span class="t">Image URL/Path:</span>
+				<input id="country126_image" name="country126_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Montserrat.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country127" class="item">
+			<label for="country127_title"><span class="t">Name:</span>
+				<input id="country127_title" name="country127_title" type="text" disabled="disabled" value="Morocco"/>
+			</label>
+			<label for="country127_image"><span class="t">Image URL/Path:</span>
+				<input id="country127_image" name="country127_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Morocco.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country128" class="item">
+			<label for="country128_title"><span class="t">Name:</span>
+				<input id="country128_title" name="country128_title" type="text" disabled="disabled" value="Mozambique"/>
+			</label>
+			<label for="country128_image"><span class="t">Image URL/Path:</span>
+				<input id="country128_image" name="country128_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Mozambique.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country129" class="item">
+			<label for="country129_title"><span class="t">Name:</span>
+				<input id="country129_title" name="country129_title" type="text" disabled="disabled" value="Myanmar"/>
+			</label>
+			<label for="country129_image"><span class="t">Image URL/Path:</span>
+				<input id="country129_image" name="country129_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Myanmar.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country130" class="item">
+			<label for="country130_title"><span class="t">Name:</span>
+				<input id="country130_title" name="country130_title" type="text" disabled="disabled" value="Namibia"/>
+			</label>
+			<label for="country130_image"><span class="t">Image URL/Path:</span>
+				<input id="country130_image" name="country130_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Namibia.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country131" class="item">
+			<label for="country131_title"><span class="t">Name:</span>
+				<input id="country131_title" name="country131_title" type="text" disabled="disabled" value="Nauru"/>
+			</label>
+			<label for="country131_image"><span class="t">Image URL/Path:</span>
+				<input id="country131_image" name="country131_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Nauru.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country132" class="item">
+			<label for="country132_title"><span class="t">Name:</span>
+				<input id="country132_title" name="country132_title" type="text" disabled="disabled" value="Nepal"/>
+			</label>
+			<label for="country132_image"><span class="t">Image URL/Path:</span>
+				<input id="country132_image" name="country132_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Nepal.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country133" class="item">
+			<label for="country133_title"><span class="t">Name:</span>
+				<input id="country133_title" name="country133_title" type="text" disabled="disabled" value="New Zealand"/>
+			</label>
+			<label for="country133_image"><span class="t">Image URL/Path:</span>
+				<input id="country133_image" name="country133_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_New_Zealand.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country134" class="item">
+			<label for="country134_title"><span class="t">Name:</span>
+				<input id="country134_title" name="country134_title" type="text" disabled="disabled" value="Nicaragua"/>
+			</label>
+			<label for="country134_image"><span class="t">Image URL/Path:</span>
+				<input id="country134_image" name="country134_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Nicaragua.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country135" class="item">
+			<label for="country135_title"><span class="t">Name:</span>
+				<input id="country135_title" name="country135_title" type="text" disabled="disabled" value="Niger"/>
+			</label>
+			<label for="country135_image"><span class="t">Image URL/Path:</span>
+				<input id="country135_image" name="country135_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Niger.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country136" class="item">
+			<label for="country136_title"><span class="t">Name:</span>
+				<input id="country136_title" name="country136_title" type="text" disabled="disabled" value="Nigeria"/>
+			</label>
+			<label for="country136_image"><span class="t">Image URL/Path:</span>
+				<input id="country136_image" name="country136_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Nigeria.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country137" class="item">
+			<label for="country137_title"><span class="t">Name:</span>
+				<input id="country137_title" name="country137_title" type="text" disabled="disabled" value="Niue"/>
+			</label>
+			<label for="country137_image"><span class="t">Image URL/Path:</span>
+				<input id="country137_image" name="country137_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Niue.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country138" class="item">
+			<label for="country138_title"><span class="t">Name:</span>
+				<input id="country138_title" name="country138_title" type="text" disabled="disabled" value="Norfolk Island"/>
+			</label>
+			<label for="country138_image"><span class="t">Image URL/Path:</span>
+				<input id="country138_image" name="country138_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Norfolk_Island.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country139" class="item">
+			<label for="country139_title"><span class="t">Name:</span>
+				<input id="country139_title" name="country139_title" type="text" disabled="disabled" value="North Korea"/>
+			</label>
+			<label for="country139_image"><span class="t">Image URL/Path:</span>
+				<input id="country139_image" name="country139_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_North_Korea.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country140" class="item">
+			<label for="country140_title"><span class="t">Name:</span>
+				<input id="country140_title" name="country140_title" type="text" disabled="disabled" value="Norway"/>
+			</label>
+			<label for="country140_image"><span class="t">Image URL/Path:</span>
+				<input id="country140_image" name="country140_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Norway.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country141" class="item">
+			<label for="country141_title"><span class="t">Name:</span>
+				<input id="country141_title" name="country141_title" type="text" disabled="disabled" value="Oman"/>
+			</label>
+			<label for="country141_image"><span class="t">Image URL/Path:</span>
+				<input id="country141_image" name="country141_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Oman.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country142" class="item">
+			<label for="country142_title"><span class="t">Name:</span>
+				<input id="country142_title" name="country142_title" type="text" disabled="disabled" value="Pakistan"/>
+			</label>
+			<label for="country142_image"><span class="t">Image URL/Path:</span>
+				<input id="country142_image" name="country142_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Pakistan.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country143" class="item">
+			<label for="country143_title"><span class="t">Name:</span>
+				<input id="country143_title" name="country143_title" type="text" disabled="disabled" value="Palau"/>
+			</label>
+			<label for="country143_image"><span class="t">Image URL/Path:</span>
+				<input id="country143_image" name="country143_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Palau.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country144" class="item">
+			<label for="country144_title"><span class="t">Name:</span>
+				<input id="country144_title" name="country144_title" type="text" disabled="disabled" value="Panama"/>
+			</label>
+			<label for="country144_image"><span class="t">Image URL/Path:</span>
+				<input id="country144_image" name="country144_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Panama.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country145" class="item">
+			<label for="country145_title"><span class="t">Name:</span>
+				<input id="country145_title" name="country145_title" type="text" disabled="disabled" value="Papua New Guinea"/>
+			</label>
+			<label for="country145_image"><span class="t">Image URL/Path:</span>
+				<input id="country145_image" name="country145_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Papua_New_Guinea.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country146" class="item">
+			<label for="country146_title"><span class="t">Name:</span>
+				<input id="country146_title" name="country146_title" type="text" disabled="disabled" value="Paraguay"/>
+			</label>
+			<label for="country146_image"><span class="t">Image URL/Path:</span>
+				<input id="country146_image" name="country146_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Paraguay.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country147" class="item">
+			<label for="country147_title"><span class="t">Name:</span>
+				<input id="country147_title" name="country147_title" type="text" disabled="disabled" value="Peru"/>
+			</label>
+			<label for="country147_image"><span class="t">Image URL/Path:</span>
+				<input id="country147_image" name="country147_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Peru.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country148" class="item">
+			<label for="country148_title"><span class="t">Name:</span>
+				<input id="country148_title" name="country148_title" type="text" disabled="disabled" value="Poland"/>
+			</label>
+			<label for="country148_image"><span class="t">Image URL/Path:</span>
+				<input id="country148_image" name="country148_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Poland.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country149" class="item">
+			<label for="country149_title"><span class="t">Name:</span>
+				<input id="country149_title" name="country149_title" type="text" disabled="disabled" value="Portugal"/>
+			</label>
+			<label for="country149_image"><span class="t">Image URL/Path:</span>
+				<input id="country149_image" name="country149_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Portugal.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country150" class="item">
+			<label for="country150_title"><span class="t">Name:</span>
+				<input id="country150_title" name="country150_title" type="text" disabled="disabled" value="Puerto Rico"/>
+			</label>
+			<label for="country150_image"><span class="t">Image URL/Path:</span>
+				<input id="country150_image" name="country150_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Puerto_Rico.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country151" class="item">
+			<label for="country151_title"><span class="t">Name:</span>
+				<input id="country151_title" name="country151_title" type="text" disabled="disabled" value="Qatar"/>
+			</label>
+			<label for="country151_image"><span class="t">Image URL/Path:</span>
+				<input id="country151_image" name="country151_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Qatar.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country152" class="item">
+			<label for="country152_title"><span class="t">Name:</span>
+				<input id="country152_title" name="country152_title" type="text" disabled="disabled" value="Romania"/>
+			</label>
+			<label for="country152_image"><span class="t">Image URL/Path:</span>
+				<input id="country152_image" name="country152_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Romania.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country153" class="item">
+			<label for="country153_title"><span class="t">Name:</span>
+				<input id="country153_title" name="country153_title" type="text" disabled="disabled" value="Russia"/>
+			</label>
+			<label for="country153_image"><span class="t">Image URL/Path:</span>
+				<input id="country153_image" name="country153_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Russia.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country154" class="item">
+			<label for="country154_title"><span class="t">Name:</span>
+				<input id="country154_title" name="country154_title" type="text" disabled="disabled" value="Rwanda"/>
+			</label>
+			<label for="country154_image"><span class="t">Image URL/Path:</span>
+				<input id="country154_image" name="country154_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Rwanda.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country155" class="item">
+			<label for="country155_title"><span class="t">Name:</span>
+				<input id="country155_title" name="country155_title" type="text" disabled="disabled" value="Saba"/>
+			</label>
+			<label for="country155_image"><span class="t">Image URL/Path:</span>
+				<input id="country155_image" name="country155_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Saba.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country156" class="item">
+			<label for="country156_title"><span class="t">Name:</span>
+				<input id="country156_title" name="country156_title" type="text" disabled="disabled" value="Saint Helena"/>
+			</label>
+			<label for="country156_image"><span class="t">Image URL/Path:</span>
+				<input id="country156_image" name="country156_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Saint_Helena.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country157" class="item">
+			<label for="country157_title"><span class="t">Name:</span>
+				<input id="country157_title" name="country157_title" type="text" disabled="disabled" value="Saint Kitts and Nevis"/>
+			</label>
+			<label for="country157_image"><span class="t">Image URL/Path:</span>
+				<input id="country157_image" name="country157_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Saint_Kitts_and_Nevis.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country158" class="item">
+			<label for="country158_title"><span class="t">Name:</span>
+				<input id="country158_title" name="country158_title" type="text" disabled="disabled" value="Saint Lucia"/>
+			</label>
+			<label for="country158_image"><span class="t">Image URL/Path:</span>
+				<input id="country158_image" name="country158_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Saint_Lucia.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country159" class="item">
+			<label for="country159_title"><span class="t">Name:</span>
+				<input id="country159_title" name="country159_title" type="text" disabled="disabled" value="Saint Vincent and Grenadines"/>
+			</label>
+			<label for="country159_image"><span class="t">Image URL/Path:</span>
+				<input id="country159_image" name="country159_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Saint_Vincent_and_the_Grenadines.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country160" class="item">
+			<label for="country160_title"><span class="t">Name:</span>
+				<input id="country160_title" name="country160_title" type="text" disabled="disabled" value="Samoa"/>
+			</label>
+			<label for="country160_image"><span class="t">Image URL/Path:</span>
+				<input id="country160_image" name="country160_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Samoa.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country161" class="item">
+			<label for="country161_title"><span class="t">Name:</span>
+				<input id="country161_title" name="country161_title" type="text" disabled="disabled" value="San Marino"/>
+			</label>
+			<label for="country161_image"><span class="t">Image URL/Path:</span>
+				<input id="country161_image" name="country161_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_San_Marino.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country162" class="item">
+			<label for="country162_title"><span class="t">Name:</span>
+				<input id="country162_title" name="country162_title" type="text" disabled="disabled" value="Sao Tome and Principe"/>
+			</label>
+			<label for="country162_image"><span class="t">Image URL/Path:</span>
+				<input id="country162_image" name="country162_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Sao_Tome_and_Principe.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country163" class="item">
+			<label for="country163_title"><span class="t">Name:</span>
+				<input id="country163_title" name="country163_title" type="text" disabled="disabled" value="Sark"/>
+			</label>
+			<label for="country163_image"><span class="t">Image URL/Path:</span>
+				<input id="country163_image" name="country163_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Sark.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country164" class="item">
+			<label for="country164_title"><span class="t">Name:</span>
+				<input id="country164_title" name="country164_title" type="text" disabled="disabled" value="Saudi Arabia"/>
+			</label>
+			<label for="country164_image"><span class="t">Image URL/Path:</span>
+				<input id="country164_image" name="country164_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Saudi_Arabia.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country165" class="item">
+			<label for="country165_title"><span class="t">Name:</span>
+				<input id="country165_title" name="country165_title" type="text" disabled="disabled" value="Senegal"/>
+			</label>
+			<label for="country165_image"><span class="t">Image URL/Path:</span>
+				<input id="country165_image" name="country165_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Senegal.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country166" class="item">
+			<label for="country166_title"><span class="t">Name:</span>
+				<input id="country166_title" name="country166_title" type="text" disabled="disabled" value="Serbia"/>
+			</label>
+			<label for="country166_image"><span class="t">Image URL/Path:</span>
+				<input id="country166_image" name="country166_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Serbia.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country167" class="item">
+			<label for="country167_title"><span class="t">Name:</span>
+				<input id="country167_title" name="country167_title" type="text" disabled="disabled" value="Sierra Leone"/>
+			</label>
+			<label for="country167_image"><span class="t">Image URL/Path:</span>
+				<input id="country167_image" name="country167_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Sierra_Leone.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country168" class="item">
+			<label for="country168_title"><span class="t">Name:</span>
+				<input id="country168_title" name="country168_title" type="text" disabled="disabled" value="Singapore"/>
+			</label>
+			<label for="country168_image"><span class="t">Image URL/Path:</span>
+				<input id="country168_image" name="country168_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Singapore.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country169" class="item">
+			<label for="country169_title"><span class="t">Name:</span>
+				<input id="country169_title" name="country169_title" type="text" disabled="disabled" value="Sint Eustatius"/>
+			</label>
+			<label for="country169_image"><span class="t">Image URL/Path:</span>
+				<input id="country169_image" name="country169_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Sint_Eustatius.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country170" class="item">
+			<label for="country170_title"><span class="t">Name:</span>
+				<input id="country170_title" name="country170_title" type="text" disabled="disabled" value="Sint Maarten"/>
+			</label>
+			<label for="country170_image"><span class="t">Image URL/Path:</span>
+				<input id="country170_image" name="country170_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Sint_Maarten.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country171" class="item">
+			<label for="country171_title"><span class="t">Name:</span>
+				<input id="country171_title" name="country171_title" type="text" disabled="disabled" value="Slovakia"/>
+			</label>
+			<label for="country171_image"><span class="t">Image URL/Path:</span>
+				<input id="country171_image" name="country171_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Slovakia.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country172" class="item">
+			<label for="country172_title"><span class="t">Name:</span>
+				<input id="country172_title" name="country172_title" type="text" disabled="disabled" value="Slovenia"/>
+			</label>
+			<label for="country172_image"><span class="t">Image URL/Path:</span>
+				<input id="country172_image" name="country172_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Slovenia.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country173" class="item">
+			<label for="country173_title"><span class="t">Name:</span>
+				<input id="country173_title" name="country173_title" type="text" disabled="disabled" value="Somalia"/>
+			</label>
+			<label for="country173_image"><span class="t">Image URL/Path:</span>
+				<input id="country173_image" name="country173_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Somalia.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country174" class="item">
+			<label for="country174_title"><span class="t">Name:</span>
+				<input id="country174_title" name="country174_title" type="text" disabled="disabled" value="South Africa"/>
+			</label>
+			<label for="country174_image"><span class="t">Image URL/Path:</span>
+				<input id="country174_image" name="country174_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_South_Africa.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country175" class="item">
+			<label for="country175_title"><span class="t">Name:</span>
+				<input id="country175_title" name="country175_title" type="text" disabled="disabled" value="South Georgia and South Sandwich Islands"/>
+			</label>
+			<label for="country175_image"><span class="t">Image URL/Path:</span>
+				<input id="country175_image" name="country175_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_South_Georgia_and_the_South_Sandwich_Islands.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country176" class="item">
+			<label for="country176_title"><span class="t">Name:</span>
+				<input id="country176_title" name="country176_title" type="text" disabled="disabled" value="South Korea"/>
+			</label>
+			<label for="country176_image"><span class="t">Image URL/Path:</span>
+				<input id="country176_image" name="country176_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_South_Korea.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country177" class="item">
+			<label for="country177_title"><span class="t">Name:</span>
+				<input id="country177_title" name="country177_title" type="text" disabled="disabled" value="Spain"/>
+			</label>
+			<label for="country177_image"><span class="t">Image URL/Path:</span>
+				<input id="country177_image" name="country177_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Spain.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country178" class="item">
+			<label for="country178_title"><span class="t">Name:</span>
+				<input id="country178_title" name="country178_title" type="text" disabled="disabled" value="Sri Lanka"/>
+			</label>
+			<label for="country178_image"><span class="t">Image URL/Path:</span>
+				<input id="country178_image" name="country178_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Sri_Lanka.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country179" class="item">
+			<label for="country179_title"><span class="t">Name:</span>
+				<input id="country179_title" name="country179_title" type="text" disabled="disabled" value="Sudan"/>
+			</label>
+			<label for="country179_image"><span class="t">Image URL/Path:</span>
+				<input id="country179_image" name="country179_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Sudan.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country180" class="item">
+			<label for="country180_title"><span class="t">Name:</span>
+				<input id="country180_title" name="country180_title" type="text" disabled="disabled" value="Suriname"/>
+			</label>
+			<label for="country180_image"><span class="t">Image URL/Path:</span>
+				<input id="country180_image" name="country180_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Suriname.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country181" class="item">
+			<label for="country181_title"><span class="t">Name:</span>
+				<input id="country181_title" name="country181_title" type="text" disabled="disabled" value="Swaziland"/>
+			</label>
+			<label for="country181_image"><span class="t">Image URL/Path:</span>
+				<input id="country181_image" name="country181_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Swaziland.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country182" class="item">
+			<label for="country182_title"><span class="t">Name:</span>
+				<input id="country182_title" name="country182_title" type="text" disabled="disabled" value="Sweden"/>
+			</label>
+			<label for="country182_image"><span class="t">Image URL/Path:</span>
+				<input id="country182_image" name="country182_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Sweden.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country183" class="item">
+			<label for="country183_title"><span class="t">Name:</span>
+				<input id="country183_title" name="country183_title" type="text" disabled="disabled" value="Switzerland"/>
+			</label>
+			<label for="country183_image"><span class="t">Image URL/Path:</span>
+				<input id="country183_image" name="country183_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Switzerland.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country184" class="item">
+			<label for="country184_title"><span class="t">Name:</span>
+				<input id="country184_title" name="country184_title" type="text" disabled="disabled" value="Syria"/>
+			</label>
+			<label for="country184_image"><span class="t">Image URL/Path:</span>
+				<input id="country184_image" name="country184_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Syria.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country185" class="item">
+			<label for="country185_title"><span class="t">Name:</span>
+				<input id="country185_title" name="country185_title" type="text" disabled="disabled" value="Tajikistan"/>
+			</label>
+			<label for="country185_image"><span class="t">Image URL/Path:</span>
+				<input id="country185_image" name="country185_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Tajikistan.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country186" class="item">
+			<label for="country186_title"><span class="t">Name:</span>
+				<input id="country186_title" name="country186_title" type="text" disabled="disabled" value="Tanzania"/>
+			</label>
+			<label for="country186_image"><span class="t">Image URL/Path:</span>
+				<input id="country186_image" name="country186_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Tanzania.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country187" class="item">
+			<label for="country187_title"><span class="t">Name:</span>
+				<input id="country187_title" name="country187_title" type="text" disabled="disabled" value="Thailand"/>
+			</label>
+			<label for="country187_image"><span class="t">Image URL/Path:</span>
+				<input id="country187_image" name="country187_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Thailand.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country188" class="item">
+			<label for="country188_title"><span class="t">Name:</span>
+				<input id="country188_title" name="country188_title" type="text" disabled="disabled" value="Gambia"/>
+			</label>
+			<label for="country188_image"><span class="t">Image URL/Path:</span>
+				<input id="country188_image" name="country188_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_The_Gambia.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country189" class="item">
+			<label for="country189_title"><span class="t">Name:</span>
+				<input id="country189_title" name="country189_title" type="text" disabled="disabled" value="Togo"/>
+			</label>
+			<label for="country189_image"><span class="t">Image URL/Path:</span>
+				<input id="country189_image" name="country189_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Togo.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country190" class="item">
+			<label for="country190_title"><span class="t">Name:</span>
+				<input id="country190_title" name="country190_title" type="text" disabled="disabled" value="Tokelau"/>
+			</label>
+			<label for="country190_image"><span class="t">Image URL/Path:</span>
+				<input id="country190_image" name="country190_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Tokelau.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country191" class="item">
+			<label for="country191_title"><span class="t">Name:</span>
+				<input id="country191_title" name="country191_title" type="text" disabled="disabled" value="Tonga"/>
+			</label>
+			<label for="country191_image"><span class="t">Image URL/Path:</span>
+				<input id="country191_image" name="country191_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Tonga.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country192" class="item">
+			<label for="country192_title"><span class="t">Name:</span>
+				<input id="country192_title" name="country192_title" type="text" disabled="disabled" value="Trinidad and Tobago"/>
+			</label>
+			<label for="country192_image"><span class="t">Image URL/Path:</span>
+				<input id="country192_image" name="country192_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Trinidad_and_Tobago.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country193" class="item">
+			<label for="country193_title"><span class="t">Name:</span>
+				<input id="country193_title" name="country193_title" type="text" disabled="disabled" value="Tristan da Cunha"/>
+			</label>
+			<label for="country193_image"><span class="t">Image URL/Path:</span>
+				<input id="country193_image" name="country193_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Tristan_da_Cunha.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country194" class="item">
+			<label for="country194_title"><span class="t">Name:</span>
+				<input id="country194_title" name="country194_title" type="text" disabled="disabled" value="Tunisia"/>
+			</label>
+			<label for="country194_image"><span class="t">Image URL/Path:</span>
+				<input id="country194_image" name="country194_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Tunisia.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country195" class="item">
+			<label for="country195_title"><span class="t">Name:</span>
+				<input id="country195_title" name="country195_title" type="text" disabled="disabled" value="Turkey"/>
+			</label>
+			<label for="country195_image"><span class="t">Image URL/Path:</span>
+				<input id="country195_image" name="country195_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Turkey.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country196" class="item">
+			<label for="country196_title"><span class="t">Name:</span>
+				<input id="country196_title" name="country196_title" type="text" disabled="disabled" value="Turkmenistan"/>
+			</label>
+			<label for="country196_image"><span class="t">Image URL/Path:</span>
+				<input id="country196_image" name="country196_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Turkmenistan.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country197" class="item">
+			<label for="country197_title"><span class="t">Name:</span>
+				<input id="country197_title" name="country197_title" type="text" disabled="disabled" value="Tuvalu"/>
+			</label>
+			<label for="country197_image"><span class="t">Image URL/Path:</span>
+				<input id="country197_image" name="country197_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Tuvalu.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country198" class="item">
+			<label for="country198_title"><span class="t">Name:</span>
+				<input id="country198_title" name="country198_title" type="text" disabled="disabled" value="Uganda"/>
+			</label>
+			<label for="country198_image"><span class="t">Image URL/Path:</span>
+				<input id="country198_image" name="country198_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Uganda.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country199" class="item">
+			<label for="country199_title"><span class="t">Name:</span>
+				<input id="country199_title" name="country199_title" type="text" disabled="disabled" value="Ukraine"/>
+			</label>
+			<label for="country199_image"><span class="t">Image URL/Path:</span>
+				<input id="country199_image" name="country199_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Ukraine.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country200" class="item">
+			<label for="country200_title"><span class="t">Name:</span>
+				<input id="country200_title" name="country200_title" type="text" disabled="disabled" value="Uruguay"/>
+			</label>
+			<label for="country200_image"><span class="t">Image URL/Path:</span>
+				<input id="country200_image" name="country200_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Uruguay.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country201" class="item">
+			<label for="country201_title"><span class="t">Name:</span>
+				<input id="country201_title" name="country201_title" type="text" disabled="disabled" value="Uzbekistan"/>
+			</label>
+			<label for="country201_image"><span class="t">Image URL/Path:</span>
+				<input id="country201_image" name="country201_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Uzbekistan.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country202" class="item">
+			<label for="country202_title"><span class="t">Name:</span>
+				<input id="country202_title" name="country202_title" type="text" disabled="disabled" value="Vanuatu"/>
+			</label>
+			<label for="country202_image"><span class="t">Image URL/Path:</span>
+				<input id="country202_image" name="country202_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Vanuatu.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country203" class="item">
+			<label for="country203_title"><span class="t">Name:</span>
+				<input id="country203_title" name="country203_title" type="text" disabled="disabled" value="Venezuela (state)"/>
+			</label>
+			<label for="country203_image"><span class="t">Image URL/Path:</span>
+				<input id="country203_image" name="country203_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Venezuela_(state).png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country204" class="item">
+			<label for="country204_title"><span class="t">Name:</span>
+				<input id="country204_title" name="country204_title" type="text" disabled="disabled" value="Vietnam"/>
+			</label>
+			<label for="country204_image"><span class="t">Image URL/Path:</span>
+				<input id="country204_image" name="country204_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Vietnam.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country205" class="item">
+			<label for="country205_title"><span class="t">Name:</span>
+				<input id="country205_title" name="country205_title" type="text" disabled="disabled" value="Yemen"/>
+			</label>
+			<label for="country205_image"><span class="t">Image URL/Path:</span>
+				<input id="country205_image" name="country205_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Yemen.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country206" class="item">
+			<label for="country206_title"><span class="t">Name:</span>
+				<input id="country206_title" name="country206_title" type="text" disabled="disabled" value="Zambia"/>
+			</label>
+			<label for="country206_image"><span class="t">Image URL/Path:</span>
+				<input id="country206_image" name="country206_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Zambia.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country207" class="item">
+			<label for="country207_title"><span class="t">Name:</span>
+				<input id="country207_title" name="country207_title" type="text" disabled="disabled" value="Zimbabwe"/>
+			</label>
+			<label for="country207_image"><span class="t">Image URL/Path:</span>
+				<input id="country207_image" name="country207_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_Zimbabwe.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country208" class="item">
+			<label for="country208_title"><span class="t">Name:</span>
+				<input id="country208_title" name="country208_title" type="text" disabled="disabled" value="Azores"/>
+			</label>
+			<label for="country208_image"><span class="t">Image URL/Path:</span>
+				<input id="country208_image" name="country208_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_the_Azores.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country209" class="item">
+			<label for="country209_title"><span class="t">Name:</span>
+				<input id="country209_title" name="country209_title" type="text" disabled="disabled" value="Bahamas"/>
+			</label>
+			<label for="country209_image"><span class="t">Image URL/Path:</span>
+				<input id="country209_image" name="country209_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_the_Bahamas.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country210" class="item">
+			<label for="country210_title"><span class="t">Name:</span>
+				<input id="country210_title" name="country210_title" type="text" disabled="disabled" value="British Antarctic Territory"/>
+			</label>
+			<label for="country210_image"><span class="t">Image URL/Path:</span>
+				<input id="country210_image" name="country210_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_the_British_Antarctic_Territory.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country211" class="item">
+			<label for="country211_title"><span class="t">Name:</span>
+				<input id="country211_title" name="country211_title" type="text" disabled="disabled" value="British Indian Ocean Territory"/>
+			</label>
+			<label for="country211_image"><span class="t">Image URL/Path:</span>
+				<input id="country211_image" name="country211_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_the_British_Indian_Ocean_Territory.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country212" class="item">
+			<label for="country212_title"><span class="t">Name:</span>
+				<input id="country212_title" name="country212_title" type="text" disabled="disabled" value="British Virgin Islands"/>
+			</label>
+			<label for="country212_image"><span class="t">Image URL/Path:</span>
+				<input id="country212_image" name="country212_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_the_British_Virgin_Islands.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country213" class="item">
+			<label for="country213_title"><span class="t">Name:</span>
+				<input id="country213_title" name="country213_title" type="text" disabled="disabled" value="Cayman Islands"/>
+			</label>
+			<label for="country213_image"><span class="t">Image URL/Path:</span>
+				<input id="country213_image" name="country213_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_the_Cayman_Islands.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country214" class="item">
+			<label for="country214_title"><span class="t">Name:</span>
+				<input id="country214_title" name="country214_title" type="text" disabled="disabled" value="Central African Republic"/>
+			</label>
+			<label for="country214_image"><span class="t">Image URL/Path:</span>
+				<input id="country214_image" name="country214_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_the_Central_African_Republic.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country215" class="item">
+			<label for="country215_title"><span class="t">Name:</span>
+				<input id="country215_title" name="country215_title" type="text" disabled="disabled" value="Cocos (Keeling) Islands"/>
+			</label>
+			<label for="country215_image"><span class="t">Image URL/Path:</span>
+				<input id="country215_image" name="country215_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_the_Cocos_(Keeling)_Islands.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country216" class="item">
+			<label for="country216_title"><span class="t">Name:</span>
+				<input id="country216_title" name="country216_title" type="text" disabled="disabled" value="Comoros"/>
+			</label>
+			<label for="country216_image"><span class="t">Image URL/Path:</span>
+				<input id="country216_image" name="country216_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_the_Comoros.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country217" class="item">
+			<label for="country217_title"><span class="t">Name:</span>
+				<input id="country217_title" name="country217_title" type="text" disabled="disabled" value="Cook Islands"/>
+			</label>
+			<label for="country217_image"><span class="t">Image URL/Path:</span>
+				<input id="country217_image" name="country217_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_the_Cook_Islands.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country218" class="item">
+			<label for="country218_title"><span class="t">Name:</span>
+				<input id="country218_title" name="country218_title" type="text" disabled="disabled" value="Czech Republic"/>
+			</label>
+			<label for="country218_image"><span class="t">Image URL/Path:</span>
+				<input id="country218_image" name="country218_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_the_Czech_Republic.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country219" class="item">
+			<label for="country219_title"><span class="t">Name:</span>
+				<input id="country219_title" name="country219_title" type="text" disabled="disabled" value="Democratic Republic of Congo"/>
+			</label>
+			<label for="country219_image"><span class="t">Image URL/Path:</span>
+				<input id="country219_image" name="country219_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_the_Democratic_Republic_of_the_Congo.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country220" class="item">
+			<label for="country220_title"><span class="t">Name:</span>
+				<input id="country220_title" name="country220_title" type="text" disabled="disabled" value="Dominican Republic"/>
+			</label>
+			<label for="country220_image"><span class="t">Image URL/Path:</span>
+				<input id="country220_image" name="country220_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_the_Dominican_Republic.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country221" class="item">
+			<label for="country221_title"><span class="t">Name:</span>
+				<input id="country221_title" name="country221_title" type="text" disabled="disabled" value="Falkland Islands"/>
+			</label>
+			<label for="country221_image"><span class="t">Image URL/Path:</span>
+				<input id="country221_image" name="country221_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_the_Falkland_Islands.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country222" class="item">
+			<label for="country222_title"><span class="t">Name:</span>
+				<input id="country222_title" name="country222_title" type="text" disabled="disabled" value="Faroe Islands"/>
+			</label>
+			<label for="country222_image"><span class="t">Image URL/Path:</span>
+				<input id="country222_image" name="country222_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_the_Faroe_Islands.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country223" class="item">
+			<label for="country223_title"><span class="t">Name:</span>
+				<input id="country223_title" name="country223_title" type="text" disabled="disabled" value="French Southern and Antarctic Lands"/>
+			</label>
+			<label for="country223_image"><span class="t">Image URL/Path:</span>
+				<input id="country223_image" name="country223_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_the_French_Southern_and_Antarctic_Lands.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country224" class="item">
+			<label for="country224_title"><span class="t">Name:</span>
+				<input id="country224_title" name="country224_title" type="text" disabled="disabled" value="Isle of Man"/>
+			</label>
+			<label for="country224_image"><span class="t">Image URL/Path:</span>
+				<input id="country224_image" name="country224_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_the_Isle_of_Man.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country225" class="item">
+			<label for="country225_title"><span class="t">Name:</span>
+				<input id="country225_title" name="country225_title" type="text" disabled="disabled" value="Marshall Islands"/>
+			</label>
+			<label for="country225_image"><span class="t">Image URL/Path:</span>
+				<input id="country225_image" name="country225_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_the_Marshall_Islands.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country226" class="item">
+			<label for="country226_title"><span class="t">Name:</span>
+				<input id="country226_title" name="country226_title" type="text" disabled="disabled" value="Netherlands"/>
+			</label>
+			<label for="country226_image"><span class="t">Image URL/Path:</span>
+				<input id="country226_image" name="country226_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_the_Netherlands.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country227" class="item">
+			<label for="country227_title"><span class="t">Name:</span>
+				<input id="country227_title" name="country227_title" type="text" disabled="disabled" value="Netherlands Antilles"/>
+			</label>
+			<label for="country227_image"><span class="t">Image URL/Path:</span>
+				<input id="country227_image" name="country227_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_the_Netherlands_Antilles.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country228" class="item">
+			<label for="country228_title"><span class="t">Name:</span>
+				<input id="country228_title" name="country228_title" type="text" disabled="disabled" value="Northern Mariana Islands"/>
+			</label>
+			<label for="country228_image"><span class="t">Image URL/Path:</span>
+				<input id="country228_image" name="country228_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_the_Northern_Mariana_Islands.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country229" class="item">
+			<label for="country229_title"><span class="t">Name:</span>
+				<input id="country229_title" name="country229_title" type="text" disabled="disabled" value="People's Republic of China"/>
+			</label>
+			<label for="country229_image"><span class="t">Image URL/Path:</span>
+				<input id="country229_image" name="country229_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_the_People's_Republic_of_China.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country230" class="item">
+			<label for="country230_title"><span class="t">Name:</span>
+				<input id="country230_title" name="country230_title" type="text" disabled="disabled" value="Philippines"/>
+			</label>
+			<label for="country230_image"><span class="t">Image URL/Path:</span>
+				<input id="country230_image" name="country230_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_the_Philippines.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country231" class="item">
+			<label for="country231_title"><span class="t">Name:</span>
+				<input id="country231_title" name="country231_title" type="text" disabled="disabled" value="Pitcairn Islands"/>
+			</label>
+			<label for="country231_image"><span class="t">Image URL/Path:</span>
+				<input id="country231_image" name="country231_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_the_Pitcairn_Islands.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country232" class="item">
+			<label for="country232_title"><span class="t">Name:</span>
+				<input id="country232_title" name="country232_title" type="text" disabled="disabled" value="Republic of China"/>
+			</label>
+			<label for="country232_image"><span class="t">Image URL/Path:</span>
+				<input id="country232_image" name="country232_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_the_Republic_of_China.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country233" class="item">
+			<label for="country233_title"><span class="t">Name:</span>
+				<input id="country233_title" name="country233_title" type="text" disabled="disabled" value="Republic of Congo"/>
+			</label>
+			<label for="country233_image"><span class="t">Image URL/Path:</span>
+				<input id="country233_image" name="country233_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_the_Republic_of_the_Congo.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country234" class="item">
+			<label for="country234_title"><span class="t">Name:</span>
+				<input id="country234_title" name="country234_title" type="text" disabled="disabled" value="Seychelles"/>
+			</label>
+			<label for="country234_image"><span class="t">Image URL/Path:</span>
+				<input id="country234_image" name="country234_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_the_Seychelles.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country235" class="item">
+			<label for="country235_title"><span class="t">Name:</span>
+				<input id="country235_title" name="country235_title" type="text" disabled="disabled" value="Solomon Islands"/>
+			</label>
+			<label for="country235_image"><span class="t">Image URL/Path:</span>
+				<input id="country235_image" name="country235_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_the_Solomon_Islands.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country236" class="item">
+			<label for="country236_title"><span class="t">Name:</span>
+				<input id="country236_title" name="country236_title" type="text" disabled="disabled" value="Turks and Caicos Islands"/>
+			</label>
+			<label for="country236_image"><span class="t">Image URL/Path:</span>
+				<input id="country236_image" name="country236_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_the_Turks_and_Caicos_Islands.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country237" class="item">
+			<label for="country237_title"><span class="t">Name:</span>
+				<input id="country237_title" name="country237_title" type="text" disabled="disabled" value="United Arab Emirates"/>
+			</label>
+			<label for="country237_image"><span class="t">Image URL/Path:</span>
+				<input id="country237_image" name="country237_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_the_United_Arab_Emirates.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country238" class="item">
+			<label for="country238_title"><span class="t">Name:</span>
+				<input id="country238_title" name="country238_title" type="text" disabled="disabled" value="United Kingdom"/>
+			</label>
+			<label for="country238_image"><span class="t">Image URL/Path:</span>
+				<input id="country238_image" name="country238_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_the_United_Kingdom.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country239" class="item">
+			<label for="country239_title"><span class="t">Name:</span>
+				<input id="country239_title" name="country239_title" type="text" disabled="disabled" value="United States"/>
+			</label>
+			<label for="country239_image"><span class="t">Image URL/Path:</span>
+				<input id="country239_image" name="country239_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_the_United_States.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country240" class="item">
+			<label for="country240_title"><span class="t">Name:</span>
+				<input id="country240_title" name="country240_title" type="text" disabled="disabled" value="United States Virgin Islands"/>
+			</label>
+			<label for="country240_image"><span class="t">Image URL/Path:</span>
+				<input id="country240_image" name="country240_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_the_United_States_Virgin_Islands.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_country241" class="item">
+			<label for="country241_title"><span class="t">Name:</span>
+				<input id="country241_title" name="country241_title" type="text" disabled="disabled" value="Vatican City"/>
+			</label>
+			<label for="country241_image"><span class="t">Image URL/Path:</span>
+				<input id="country241_image" name="country241_image" type="text" disabled="disabled" value="http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/Flag_of_the_Vatican_City.png"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+	</div>
+	<div id="types">
+		<p><strong>5. Types are automatic populated by default, don't need to change</strong></p>
+		<div id="div_type0" class="item">
+			<label for="type0_title"><span class="t">Title:</span>
+				<input id="type0_title" name="type0_title" type="text" disabled="disabled" value="RSS feed"/>
+			</label>
+			<label for="type0_image"><span class="t">Image URL/Path:</span>
+				<input id="type0_image" name="type0_image" type="text" disabled="disabled" value="[WEBMEDIA]resources/types/rssfeed_200x200_24.png"/>
+			</label>
+			<label for="type0_textcolor"><span class="t">Hex text color:</span>
+				<input id="type0_textcolor" name="type0_textcolor" type="text" value="#FFCC00"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_type1" class="item">
+			<label for="type1_title"><span class="t">Title:</span>
+				<input id="type1_title" name="type1_title" type="text" disabled="disabled" value="Imagecast"/>
+			</label>
+			<label for="type1_image"><span class="t">Image URL/Path:</span>
+				<input id="type1_image" name="type1_image" type="text" disabled="disabled" value="[WEBMEDIA]resources/types/imagecast_200x200_24.png"/>
+			</label>
+			<label for="type1_textcolor"><span class="t">Hex text color:</span>
+				<input id="type1_textcolor" name="type1_textcolor" type="text" value="#FFFF00"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_type2" class="item">
+			<label for="type2_title"><span class="t">Title:</span>
+				<input id="type2_title" name="type2_title" type="text" disabled="disabled" value="Podcast"/>
+			</label>
+			<label for="type2_image"><span class="t">Image URL/Path:</span>
+				<input id="type2_image" name="type2_image" type="text" disabled="disabled" value="[WEBMEDIA]resources/types/podcast_200x200_24.png"/>
+			</label>
+			<label for="type2_textcolor"><span class="t">Hex text color:</span>
+				<input id="type2_textcolor" name="type2_textcolor" type="text" value="#FFFF99"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_type3" class="item">
+			<label for="type3_title"><span class="t">Title:</span>
+				<input id="type3_title" name="type3_title" type="text" disabled="disabled" value="Videocast"/>
+			</label>
+			<label for="type3_image"><span class="t">Image URL/Path:</span>
+				<input id="type3_image" name="type3_image" type="text" disabled="disabled" value="[WEBMEDIA]resources/types/videocast_200x200_24.png"/>
+			</label>
+			<label for="type3_textcolor"><span class="t">Hex text color:</span>
+				<input id="type3_textcolor" name="type3_textcolor" type="text" value="#FFFFFF"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_type4" class="item">
+			<label for="type4_title"><span class="t">Title:</span>
+				<input id="type4_title" name="type4_title" type="text" disabled="disabled" value="Live TV"/>
+			</label>
+			<label for="type4_image"><span class="t">Image URL/Path:</span>
+				<input id="type4_image" name="type4_image" type="text" disabled="disabled" value="[WEBMEDIA]resources/types/livetv_256x256_24.png"/>
+			</label>
+			<label for="type4_textcolor"><span class="t">Hex text color:</span>
+				<input id="type4_textcolor" name="type4_textcolor" type="text" value="#66CC00"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+		<div id="div_type5" class="item">
+			<label for="type5_title"><span class="t">Title:</span>
+				<input id="type5_title" name="type5_title" type="text" disabled="disabled" value="Live Radio"/>
+			</label>
+			<label for="type5_image"><span class="t">Image URL/Path:</span>
+				<input id="type5_image" name="type5_image" type="text" disabled="disabled" value="[WEBMEDIA]resources/types/liveradio_256x256_24.png"/>
+			</label>
+			<label for="type5_textcolor"><span class="t">Hex text color:</span>
+				<input id="type5_textcolor" name="type5_textcolor" type="text" value="#33CC00"/>
+			</label>
+			<div class="clr"></div>
+		</div>
+	</div>
+	</fieldset>
+	</form>
+	<div id="create">
+		<form method="post" id="form_pastebin" name="form_pastebin" action="http://pastebin.com/api_public.php" target="_blank">
+		<fieldset>
+		<p style="padding:0.15em 0 0.85em 0;margin:0;"><strong>6. Create your XML file and submit it to Pastebin OR Pastehtml</strong></p>
+		<div id="pastebin" class="item">
+			<p><strong>Pastebin</strong></p>
+			<legend class="hd">Form for creating a xml file</legend>
+			<input type="hidden" id="paste_private" name="paste_private" value="1"/>
+			<input type="hidden" id="paste_format" name="paste_format" value="xml"/>
+			<input type="hidden" id="paste_email" name="paste_email" value=""/>
+			<input type="hidden" id="paste_name" name="paste_name" value=""/>
+			<input type="hidden" id="paste_code" name="paste_code" value=""/>
+			<label for="paste_expire_date"><span class="t">Expiry in:</span>
+				<select id="paste_expire_date" name="paste_expire_date">
+					<option value="1M">1 minute</option>
+					<option value="10M">10 minutes</option>
+					<option value="1H">1 hour</option>
+					<option value="1D">1 day</option>
+					<option value="N" selected="selected">Never</option>
+				</select>
+			</label>
+			<div class="clr"></div>
+			<p>&nbsp;</p>
+			<p><input id="makexml_pastebin" type="submit" Value="Submit to pastebin"/></p>
+			<div class="clr"></div>
+			<p>&nbsp;</p>
+			<p>After submit, in pastebin, download your XML file OR copy the raw xml URL to your webMedia settings in Showtime</p>
+			<div class="clr"></div>
+		</div>
+		</fieldset>
+		</form>
+		<form method="post" id="form_pastehtml" name="form_pastehtml" action="http://pastehtml.com/upload/create" target="_blank">
+		<fieldset>
+		<div id="pastehtml" class="item">
+			<p><strong>Pastehtml</strong></p>
+			<legend class="hd">Form for creating a xml file</legend>
+			<input type="hidden" id="input_type" name="input_type" value="html"/>
+			<input type="hidden" id="result" name="result" value="redirect"/>
+			<input type="hidden" id="txt" name="txt" value=""/>
+			<p><input id="makexml_pastehtml" type="submit" Value="Submit to pastehtml"/></p>
+			<div class="clr"></div>
+			<p>&nbsp;</p>
+			<p>After submit, in pastehtml, save your XML file OR copy the resulting URL to your webMedia settings in Showtime</p>
+			<div class="clr"></div>
+		</div>
+		</fieldset>
+		</form>
+	</div>
+	</div>
+	<p style="font-size:0.8em;text-align:right;">by <a href="mailto:andreus.sebes@gmail.com">andreus sebes</a></p>
+</body>
+</html>

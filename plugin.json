@@ -1,0 +1,12 @@
+{
+	"type": "javascript",
+	"id": "webmedia",
+	"file": "webmedia.js",
+	"showtimeVersion": "3.3.219",
+	"version": "1.0",
+	"author": "andreus sebes (andreus.sebes@gmail.com)",
+	"title": "webMedia",
+        "icon": "logo.png",
+	"synopsis": "Free internet source media reader",
+	"description": "<p>webMedia plugin for showtime displays RSS, imagecast, podcast, videocast, live TV and live radio from any free internet source.</p>"
+}
