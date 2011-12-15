@@ -15,8 +15,6 @@ I thanks Andreas Öman for this wonderfull application that is Showtime and
 for all the plugin documentation.
 I also thanks facanferff and NP for their excelent plugins.
 
-IMPORTANT: webMedia only works with Showtime v3.3.328+
-
 =============================================================================
 Release notes
 =============================================================================
@@ -152,7 +150,7 @@ of the plugin. This file is in:
   Showtime (Multiman version):
   /dev_hdd0/game/BLES80608/USRDIR/st_settings/settings/plugins/webmedia
 Just add/change the line
-	"xmllocalization": "xxxxxxxxxxx",
+	"xmllocalization1": "xxxxxxxxxxx",
 
 PROBLEM
 -------
