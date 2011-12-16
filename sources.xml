@@ -30,6 +30,8 @@
 			<country>United States</country>
 			<theme>News</theme>
 			<type>Videocast</type>
+			<parentalcontrol>1</parentalcontrol>
+			<favorite>No</favorite>
 		</item>
 		<!-- PSX-Scene -->
 		<item>
@@ -40,6 +42,8 @@
 			<theme>News</theme>
 			<theme>Playstation 3</theme>
 			<type>RSS feed</type>
+			<parentalcontrol>1</parentalcontrol>
+			<favorite>No</favorite>
 		</item>
 		<!-- PS3Crunch -->
 		<item>
@@ -50,6 +54,8 @@
 			<theme>News</theme>
 			<theme>Playstation 3</theme>
 			<type>RSS feed</type>
+			<parentalcontrol>1</parentalcontrol>
+			<favorite>No</favorite>
 		</item>
 		<!-- PS3Hax -->
 		<item>
@@ -60,6 +66,8 @@
 			<theme>News</theme>
 			<theme>Playstation 3</theme>
 			<type>RSS feed</type>
+			<parentalcontrol>1</parentalcontrol>
+			<favorite>No</favorite>
 		</item>
 		<!-- PS3News -->
 		<item>
@@ -70,6 +78,8 @@
 			<theme>News</theme>
 			<theme>Playstation 3</theme>
 			<type>RSS feed</type>
+			<parentalcontrol>1</parentalcontrol>
+			<favorite>No</favorite>
 		</item>
 		<!-- Showtime -->
 		<item>
@@ -80,6 +90,8 @@
 			<theme>News</theme>
 			<theme>Playstation 3</theme>
 			<type>RSS feed</type>
+			<parentalcontrol>1</parentalcontrol>
+			<favorite>No</favorite>
 		</item>
 		<!-- Picasa -->
 		<item>
@@ -89,6 +101,8 @@
 			<country>United States</country>
 			<theme>Social</theme>
 			<type>Imagecast</type>
+			<parentalcontrol>1</parentalcontrol>
+			<favorite>No</favorite>
 		</item>
 		<!-- Flicker -->
 		<item>
@@ -98,6 +112,8 @@
 			<country>United States</country>
 			<theme>Social</theme>
 			<type>Imagecast</type>
+			<parentalcontrol>1</parentalcontrol>
+			<favorite>No</favorite>
 		</item>
 	</sources>
 	<countries>
@@ -347,17 +363,17 @@
 	<themes>
 		<item>
 			<title>News</title>
-			<image></image>
+			<image>http://oi42.tinypic.com/2ihrvhs.png</image>
 		</item>
 		<item>
 			<title>Playstation 3</title>
-			<image></image>
+			<image>http://oi43.tinypic.com/fd7syv.png</image>
 		</item>
 	</themes>
 	<publishers>
 		<item>
 			<title>CNN</title>
-			<image></image>
+			<image>http://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Cnn.svg/200px-Cnn.svg.png</image>
 		</item>
 		<item>
 			<title>PSX-Scene</title>
