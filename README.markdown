@@ -59,7 +59,7 @@ But, you can, and should change the localization of this file file by putting HT
 
 Examples:
 
--  SMB: smb://192.168.1.10/webmedia/sources.xml
+-  SMB: [smb://192.168.1.10/webmedia/sources.xml](smb://192.168.1.10/webmedia/sources.xml)
 -  HTTP: http://192.168.1.10/webmedia/sources.xml
 -  HTTP: http://pastehtml.com/view/bfsgjamdn.html
 -  HTTP: http://pastebin.com/raw.php?i=WDVC940d
