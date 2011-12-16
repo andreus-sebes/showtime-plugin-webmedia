@@ -7,7 +7,7 @@ Can read RSS feeds, Imagecast, Podcast, Videocast, Live TV/Radio (rtmp) and web 
 I build this plugin for my own use because i wanted more than current Showtime plugins can give. 
 The purpose of this plugin is to have the possibility to read free media sources avaivable in the Internet.
 
-I thanks Andreas Öman for this wonderfull application that is Showtime and for all the plugin documentation.
+I thanks Andreas Ã–man for this wonderfull application that is Showtime and for all the plugin documentation.
 I also thanks facanferff and NP for their excelent plugins.
 
 ## Release notes
