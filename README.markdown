@@ -107,7 +107,7 @@ Workaround: You can force it in the plugin settings.
 ### PROBLEM 4
 
 I want to use an ATOM feed that webMedia does not read.
-webMedia doesn't read Atom feeds
+webMedia doesn't read Atom feeds.
 Workaround: Use a website to convert it in real time: [AtomToRSS](http://devtacular.com/utilities/atomtorss/) or [Atom2RSS](http://atom2rss.appspot.com/)
 
 ### PROBLEM 5
