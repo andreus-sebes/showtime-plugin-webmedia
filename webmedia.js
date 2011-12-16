@@ -202,7 +202,7 @@
 	{
 		var show=true;
 		if (o.parentalcontrol.toString()!=null)
-			if (parseInt(o.parentalcontrol.toString())>=parseInt(service.parentalcontrol)) show=false;
+			if (parseInt(o.parentalcontrol.toString())>parseInt(service.parentalcontrol)) show=false;
 		
 		return show;
 	}
