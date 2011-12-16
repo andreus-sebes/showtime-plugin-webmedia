@@ -538,7 +538,7 @@
 		page.loading = false;
 	});
 
-	plugin.addURI(PREFIX+":browse:(.*):(.*):(.*):(.*):(.*):(.*):(.*)", function(page, filter, coun, the, pub, typ, fav, feedid)
+	plugin.addURI(PREFIX+":browse:(.*):(.*):(.*):(.*):(.*):(.*):([0-9]+)", function(page, filter, coun, the, pub, typ, fav, feedid)
 	{
 		// Page properties
 		if (filter=='None') page.metadata.title = _TITLE+' > Browse > '+osources.sources.item[feedid].title;
@@ -568,7 +568,7 @@
 					if (is_media_available(media_url)) page.appendItem(media_url, content_type, { title: item_title, description: item_desc, year: feed_item_content.pubDate, icon: item_icon });
 					else page.appendItem(PREFIX+":offline", content_type, { title: "[X] "+item_title, description: item_desc, year: feed_item_content.pubDate, icon: item_icon });
 				}
-				else page.appendItem(PREFIX+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+feedid+":"+count, content_type, { title: item_title, description: item_desc, year: feed_item_content.pubDate, icon: item_icon });
+				else page.appendItem(PREFIX+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+feedid+"-"+count, content_type, { title: item_title, description: item_desc, year: feed_item_content.pubDate, icon: item_icon });
 				count=count+1;
 				if (service.debug=='1') showtime.trace(item_title+'\n->'+item_icon);
 			}
@@ -577,9 +577,12 @@
 		page.loading = false;
 	});
 
-	plugin.addURI(PREFIX+":browse:(.*):(.*):(.*):(.*):(.*):(.*):(.*):(.*)", function(page, filter, coun, the, pub, typ, fav, feedid, feeditemid)
+	plugin.addURI(PREFIX+":browse:(.*):(.*):(.*):(.*):(.*):(.*):([0-9]+-[0-9]+)", function(page, filter, coun, the, pub, typ, fav, feedanditemid)
 	{
 		// Page properties
+		var parts=feedanditemid.toString().split("-");
+		var feedid=parts[0];
+		var feeditemid=parts[1];
 		page.metadata.title = _TITLE+' > ... > '+feed_contents.channel.item[feeditemid].title;
 		page.metadata.logo = _LOGO;
 		page.type = "item";
@@ -588,7 +591,7 @@
 		// Page content
 		var feed_item_content=feed_contents.channel.item[feeditemid];
 		var item_icon=get_feeditem_thumbnail(feed_item_content);
-		var item_title=get_feeditem_title(feedid,feed_item_content,feeditemid);
+		var item_title=get_feeditem_title(feed_item_content,feeditemid);
 		var item_desc=get_feeditem_description(feed_item_content);
 		page.metadata.icon= item_icon;
 		if (feed_item_content.title!='') page.appendPassiveItem("label", item_title, { title: "Title"});
@@ -601,13 +604,13 @@
 		page.appendAction("navopen",PREFIX+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+feedid, true, { title: "Back to list" });
 		if (prev>=0)
 		{
-			var prev_title=(feed_contents.channel.item[prev].title.toString()=='')?'Item '+prev:feed_contents.channel.item[prev].title.toString();
-			page.appendAction("navopen",PREFIX+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+feedid+":"+prev, true, { title: "<< Previous item" });
+			//var prev_title=(feed_contents.channel.item[prev].title.toString()=='')?'Item '+prev:feed_contents.channel.item[prev].title.toString();
+			page.appendAction("navopen",PREFIX+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+feedid+"-"+prev, true, { title: "<< Previous item" });
 		}
 		if (next<feed_contents.channel.item.length())
 		{
-			var next_title=(feed_contents.channel.item[next].title.toString()=='')?'Item '+next:feed_contents.channel.item[next].title.toString();
-			page.appendAction("navopen",PREFIX+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+feedid+":"+next, true, { title: "Next item >>" });
+			//var next_title=(feed_contents.channel.item[next].title.toString()=='')?'Item '+next:feed_contents.channel.item[next].title.toString();
+			page.appendAction("navopen",PREFIX+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+feedid+"-"+next, true, { title: "Next item >>" });
 		}
 		//page.appendAction("navopen", feed_item_content.link.toString(), true,{ title: "View in web browser (not working)" });
 		page.loading = false;
