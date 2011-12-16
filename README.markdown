@@ -95,7 +95,9 @@ Workaround: You have 2 options:
 
 1.  Connect a USB keyboard to your PS3, then, in showtime, go to webMedia plugin settings and manualy add your HTTP/SMB URL
 2.  Use a FTP filemanger and manualy change the configuration file of the plugin. This file is in:
+    
     Showtime: `/dev_hdd0/game/HTSS00003/USRDIR/settings/settings/plugins/webmedia`
+	
     Showtime (Multiman version): `/dev_hdd0/game/BLES80608/USRDIR/st_settings/settings/plugins/webmedia`
 	
     Just add/change the line: `"xmllocalization1": "xxxxxxxxxxx",`
