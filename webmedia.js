@@ -48,7 +48,7 @@
 	var media     = new Namespace("http://search.yahoo.com/mrss/");
 	var lang     = "en-US";
 	var osources=null;
-	var feed_contents;
+	var feed_contents=null;
 
 	// Create startup service
     var service = plugin.createService(_TITLE, PREFIX+":start", "video", true, _LOGO);
@@ -221,32 +221,40 @@
 
 	function is_streaming_media(o)
 	{
-		if (o.toString().match(/rtmp|rstp|mms|pnm|pna|thestreamdb\.com/i)==null) return false;
+		if (o.link.toString().match(/rtmp|rstp|mms|pnm|pna|thestreamdb\.com/i)==null) return false;
 		else return true;
 	}
 
-	function is_media_available(o)
+	function is_web_media(o)
+	{
+		if (o.type.toString()=="Web Resource") return true;
+		else return false;
+	}
+
+	function is_media_available(o,lik)
 	{
 		try
 		{
-			if (showtime.canHandle(o.toString())==true)
+			if (o==null) var lk=lik;
+			else var lk=strip_timeout(o.link.toString());
+			if (showtime.canHandle(lk)==true)
 			{
 				if (service.probetimeout.toString()!="0")
 				{
-					var ret = showtime.probe(o.toString()+" timeout="+service.probetimeout.toString());
+					var ret = showtime.probe(lk+" timeout="+service.probetimeout.toString());
 					if (!ret.result) return true;
 					else
 					{
-						if (service.debug=='1') showtime.trace(ret.errmsg+": ->"+o.toString());
+						if (service.debug=='1') showtime.trace(ret.errmsg+": ->"+lk);
 						//Workaround for unprobable URLs with timeout (Unhandled HTTP response 400)
-						if (is_streaming_media(o)) return false;
+						if (is_streaming_media(lk)) return false;
 						else
 						{
-							var ret2 = showtime.probe(o.toString());
+							var ret2 = showtime.probe(lk);
 							if (!ret2.result) return true;
 							else
 							{
-								if (service.debug=='1') showtime.trace(ret2.errmsg+": ->"+o.toString());
+								if (service.debug=='1') showtime.trace(ret2.errmsg+": ->"+lk);
 								return false;
 							}
 						}
@@ -256,15 +264,45 @@
 			}
 			else
 			{
-				if (service.debug=='1') showtime.trace("Showtime can't handle URL: ->"+o.toString());
+				if (service.debug=='1') showtime.trace("Showtime can't handle URL: ->"+lk);
 				return false;
 			}
 		}
 		catch (err)
 		{
-			if (service.debug=='1') showtime.trace(ret.errmsg+" ->"+o.toString());
+			if (service.debug=='1') showtime.trace(ret.errmsg+" ->"+lk);
 			return false;
 		}
+	}
+
+	function strip_timeout(lk)
+	{
+		lk=lk.toString().replace(/ timeout=([0-9]*)/i,'');
+		return lk.toString().replace(/\n/i,'');
+	}
+
+	function add_stream_option(page, o)
+	{
+		var streamingtype=(o.type.toString()=="Live TV")?"video":"audio";
+		if (o.link.toString().match(/thestreamdb\.com/i)!=null)
+		{
+			try
+			{
+				var nlink=showtime.httpGet(o.link).toString();
+				if (service.debug=='1')
+				{
+					var parts=nlink.toString().split(" ");
+					showtime.trace("StreamDB:");
+					for (var x in parts)
+						showtime.trace("- "+parts[x]);
+				}
+			}
+			catch (err) { var nlink=''; }
+		}
+		else var nlink=o.link;
+		if (nlink!='' && is_media_available(null,strip_timeout(nlink))) page.appendItem(strip_timeout(nlink)+" timeout="+service.timeout.toString(), streamingtype, {title: color_text(o,o.title), icon: get_image(o, null,"publisher") });
+		else page.appendItem(PREFIX+":offline", "image", {title: color_text(o,"[X] "+o.title), icon: get_image(o, null,"publisher") });
+		if (service.debug=='1') showtime.trace("Live: "+o.title.toString()+" "+o.type.toString());
 	}
 
 	function get_image(o,s,w)
@@ -301,32 +339,6 @@
 		//if (service.debug=='1') showtime.trace("Image: |"+img+"|");
 		if (img=='') return null;
 		else return img.replace(/\[WEBMEDIA\]/gi,plugin.path);
-	}
-
-	function add_stream_option(page, o)
-	{
-		var streamingtype=(o.type.toString()=="Live TV")?"video":"audio";
-		if (o.toString().match(/thestreamdb\.com/i)!=null)
-		{
-			try
-			{
-				var nlink=showtime.httpGet(o.link).toString();
-				if (service.debug=='1')
-				{
-					var parts=nlink.toString().split(" ");
-					showtime.trace("StreamDB:");
-					for (var x in parts)
-						showtime.trace("- "+parts[x]);
-				}
-			}
-			catch (err) { var nlink=''; }
-		}
-		else var nlink=o.link;
-		nlink=nlink.toString().replace(/ timeout=([0-9]*)/i,'');
-		nlink=nlink.toString().replace(/\n/i,'');
-		if (nlink!='' && is_media_available(nlink)) page.appendItem(nlink+" timeout="+service.timeout.toString(), streamingtype, {title: color_text(o,o.title), icon: get_image(o, null,"publisher") });
-		else page.appendItem(PREFIX+":offline", "image", {title: color_text(o,"[X] "+o.title), icon: get_image(o, null,"publisher") });
-		if (service.debug=='1') showtime.trace("Live: "+o.title.toString()+" "+o.type.toString());
 	}
 
 	// FEED ITEM functions
@@ -406,9 +418,9 @@
 			{
 				if (show_adult(fee))
 				{
-					var fee_data = { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") };
-					if (!is_streaming_media(fee.link)) page.appendItem(PREFIX+":browse:None:All:All:All:All:All:"+count, "item", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
-					else add_stream_option(page, fee);
+					if (is_web_media(fee)) page.appendItem(fee.link.toString(), "item", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
+					else if (is_streaming_media(fee)) add_stream_option(page, fee);
+					else page.appendItem(PREFIX+":browse:None:All:All:All:All:All:"+count, "item", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
 				}
 				count++;
 			}
@@ -496,8 +508,6 @@
 		{
 			if (show_adult(fee))
 			{
-				//showtime.message(fee.title+'|'+fee.type+'|'+is_streaming_media(fee.link)+'|'+is_media_available(fee.link),true,false);
-				//showtime.message("Streaming:"+is_streaming_media(fee.link)+" Probe:"+probe_media(fee.link),true,false);
 				var notidentified=0;
 				if (filter!="None")
 				{
@@ -508,29 +518,26 @@
 					else if (filter=='byfavorites') { var fee_field=fee.favorite; var field=fav; }
 					if (fee_field.length()==0 && field=="None" && notidentified==0) //All: Not Identified group
 					{
-						if (!is_streaming_media(fee.link)) page.appendItem(PREFIX+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+count, "item", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
-						else add_stream_option(page, fee);
+						if (is_web_media(fee)) page.appendItem(fee.link.toString(), "item", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
+						else if (is_streaming_media(fee)) add_stream_option(page, fee);
+						else page.appendItem(PREFIX+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+count, "item", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
 						notidentified=1;
 					}
 					for each (var subit in fee_field)
 					{
-						if (tp(subit)==field) //Filter: Group
+						if ((tp(subit)==field) || (subit=='' && field=="None" && notidentified==0)) //Filter: Group || Not Identified group
 						{
-							if (!is_streaming_media(fee.link)) page.appendItem(PREFIX+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+count, "item", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
-							else add_stream_option(page, fee);
-						}
-						else if (subit=='' && field=="None" && notidentified==0) //Filter: Not Identified group
-						{
-							//showtime.message(fee.title+'|'+is_media_available(fee.link),true,false);
-							if (!is_streaming_media(fee.link)) page.appendItem(PREFIX+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+count, "item", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
-							else add_stream_option(page, fee);
+							if (is_web_media(fee)) page.appendItem(fee.link.toString(), "item", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
+							else if (is_streaming_media(fee)) add_stream_option(page, fee);
+							else page.appendItem(PREFIX+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+count, "item", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
 						}
 					}
 				}
 				else //No filter: All
 				{
-					if (!is_streaming_media(fee.link)) page.appendItem(PREFIX+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+count, "item", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
-					else add_stream_option(page, fee);
+					if (is_web_media(fee)) page.appendItem(fee.link.toString(), "item", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
+					else if (is_streaming_media(fee)) add_stream_option(page, fee);
+					else page.appendItem(PREFIX+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+count, "item", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
 				}
 			}
 			count++;
@@ -565,7 +572,7 @@
 					var media_length=media_content.@length;
 					var media_url=media_content.@url;
 					//var timeout=" timeout="+service.timeout.toString();
-					if (is_media_available(media_url)) page.appendItem(media_url, content_type, { title: item_title, description: item_desc, year: feed_item_content.pubDate, icon: item_icon });
+					if (is_media_available(null,media_url)) page.appendItem(media_url, content_type, { title: item_title, description: item_desc, year: feed_item_content.pubDate, icon: item_icon });
 					else page.appendItem(PREFIX+":offline", content_type, { title: "[X] "+item_title, description: item_desc, year: feed_item_content.pubDate, icon: item_icon });
 				}
 				else page.appendItem(PREFIX+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+feedid+"-"+count, content_type, { title: item_title, description: item_desc, year: feed_item_content.pubDate, icon: item_icon });
@@ -587,7 +594,7 @@
 		page.metadata.logo = _LOGO;
 		page.type = "item";
 		page.metadata.icon=_IMG_UNKNOWN;
-
+		
 		// Page content
 		var feed_item_content=feed_contents.channel.item[feeditemid];
 		var item_icon=get_feeditem_thumbnail(feed_item_content);

@@ -63,18 +63,8 @@ fetched from the internet. All rights go to the authors.
 Installing
 =============================================================================
 
-webMedia, in the future, will be available directly from Showtime plugin
-repository.
-
-Meanwhile if you want to install it on your PS3 you have 2 options:
-1. Copy the webmedia.zip file to a USB pen drive, open Showtime, go to the
-   USB pen drive icon and run webmedia.zip file
-2. Copy the webmedia.zip file to using a file or FTP manager:
-  Showtime plugin path:
-  /dev_hdd0/game/HTSS00003/USRDIR/settings/installedplugins/
-
-  Showtime (Multiman version) plugin path:
-  /dev_hdd0/game/BLES80608/USRDIR/st_settings/installedplugins/
+webMedia, is available directly from Showtime plugin repository. Just install
+it from there (the puzzle peace in showtime homepage right top corner).
 
 =============================================================================
 Configuring

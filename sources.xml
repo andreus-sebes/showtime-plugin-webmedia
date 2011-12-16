@@ -403,5 +403,6 @@
 		<item><title>Videocast</title><image>[WEBMEDIA]resources/types/videocast_200x200_24.png</image><textcolor>#ffffff</textcolor></item>
 		<item><title>Live TV</title><image>[WEBMEDIA]resources/types/livetv_256x256_24.png</image><textcolor>#66cc00</textcolor></item>
 		<item><title>Live Radio</title><image>[WEBMEDIA]resources/types/liveradio_256x256_24.png</image><textcolor>#33cc00</textcolor></item>
+		<item><title>Web Resource</title><image>[WEBMEDIA]resources/types/webresource_256x256_24.png</image><textcolor>#ff00ff</textcolor></item>
 	</types>
 </rss>
