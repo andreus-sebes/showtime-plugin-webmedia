@@ -89,7 +89,7 @@ There is a folder "resources" inside the plugin zip file which contains a subfol
 In PS3, i want to change the localization of the xml file but showtime doesn't let me enter text.
 
 The problem is that Showtime doesn't have a virtual keyboard.
-This is a Showtime problem. There is several issues registed: https://www.lonelycoder.com/redmine/issues/2; https://www.lonelycoder.com/redmine/issues/680; https://www.lonelycoder.com/redmine/issues/687
+This is a Showtime problem. There are several issues registed: https://www.lonelycoder.com/redmine/issues/2; https://www.lonelycoder.com/redmine/issues/680; https://www.lonelycoder.com/redmine/issues/687
 
 Workaround: You have 2 options:
 
@@ -97,6 +97,7 @@ Workaround: You have 2 options:
 2.  Use a FTP filemanger and manualy change the configuration file of the plugin. This file is in:
     Showtime: `/dev_hdd0/game/HTSS00003/USRDIR/settings/settings/plugins/webmedia`
     Showtime (Multiman version): `/dev_hdd0/game/BLES80608/USRDIR/st_settings/settings/plugins/webmedia`
+	
     Just add/change the line: `"xmllocalization1": "xxxxxxxxxxx",`
 
 ### PROBLEM 2
