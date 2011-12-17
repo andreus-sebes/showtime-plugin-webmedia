@@ -44,10 +44,8 @@
 	var _IMG_UNKNOWN=plugin.path+'resources/others/notidentified_256x256_24.png';
 	var _IMG_FAVORITE=plugin.path+'resources/others/favorites_256x256_24.png';
 	var _IMG_OFFLINE=plugin.path+'resources/others/offline_256x256_24.png';
-	var _IMG_OFFLINE2=plugin.path+'resources/others/offline_256x512_24.png';
 	var media	= new Namespace("http://search.yahoo.com/mrss/");
 	var itunes	= new Namespace("http://www.itunes.com/dtds/podcast-1.0.dtd");
-	var lang	= "en-US";
 	var osources=null;
 	var feed_contents=null;
 
