@@ -45,8 +45,8 @@
 	var _IMG_FAVORITE=plugin.path+'resources/others/favorites_256x256_24.png';
 	var _IMG_OFFLINE=plugin.path+'resources/others/offline_256x256_24.png';
 	var _IMG_OFFLINE2=plugin.path+'resources/others/offline_256x512_24.png';
-	var media     = new Namespace("http://search.yahoo.com/mrss/");
-	var lang     = "en-US";
+	var media	= new Namespace("http://search.yahoo.com/mrss/");
+	var lang	= "en-US";
 	var osources=null;
 	var feed_contents=null;
 
@@ -228,6 +228,12 @@
 	function is_web_media(o)
 	{
 		if (o.type.toString()=="Web Resource") return true;
+		else return false;
+	}
+
+	function is_web_folder(o)
+	{
+		if (o.type.toString()=="Web Folder") return true;
 		else return false;
 	}
 
@@ -419,6 +425,7 @@
 				if (show_adult(fee))
 				{
 					if (is_web_media(fee)) page.appendItem(fee.link.toString(), "item", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
+					else if (is_web_folder(fee)) page.appendItem(fee.link.toString(), "directory", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
 					else if (is_streaming_media(fee)) add_stream_option(page, fee);
 					else page.appendItem(PREFIX+":browse:None:All:All:All:All:All:"+count, "item", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
 				}
@@ -519,6 +526,7 @@
 					if (fee_field.length()==0 && field=="None" && notidentified==0) //All: Not Identified group
 					{
 						if (is_web_media(fee)) page.appendItem(fee.link.toString(), "item", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
+						else if (is_web_folder(fee)) page.appendItem(fee.link.toString(), "directory", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
 						else if (is_streaming_media(fee)) add_stream_option(page, fee);
 						else page.appendItem(PREFIX+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+count, "item", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
 						notidentified=1;
@@ -528,6 +536,7 @@
 						if ((tp(subit)==field) || (subit=='' && field=="None" && notidentified==0)) //Filter: Group || Not Identified group
 						{
 							if (is_web_media(fee)) page.appendItem(fee.link.toString(), "item", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
+							else if (is_web_folder(fee)) page.appendItem(fee.link.toString(), "directory", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
 							else if (is_streaming_media(fee)) add_stream_option(page, fee);
 							else page.appendItem(PREFIX+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+count, "item", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
 						}
@@ -536,6 +545,7 @@
 				else //No filter: All
 				{
 					if (is_web_media(fee)) page.appendItem(fee.link.toString(), "item", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
+					else if (is_web_folder(fee)) page.appendItem(fee.link.toString(), "directory", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
 					else if (is_streaming_media(fee)) add_stream_option(page, fee);
 					else page.appendItem(PREFIX+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+count, "item", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
 				}

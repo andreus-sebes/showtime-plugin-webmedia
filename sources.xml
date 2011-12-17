@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <rss version="2.0">
 	<sources>
+		<item>
+			<title>Countries Folder</title>
+			<link>http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/</link>
+			<publisher>openiconlibrary</publisher>
+			<country></country>
+			<theme></theme>
+			<type>Web Folder</type>
+			<parentalcontrol>1</parentalcontrol>
+			<favorite>Yes</favorite>
+		</item>
 		<!-- CNN -->
 		<item>
 			<title>Top Stories</title>
@@ -404,5 +414,6 @@
 		<item><title>Live TV</title><image>[WEBMEDIA]resources/types/livetv_256x256_24.png</image><textcolor>#66cc00</textcolor></item>
 		<item><title>Live Radio</title><image>[WEBMEDIA]resources/types/liveradio_256x256_24.png</image><textcolor>#33cc00</textcolor></item>
 		<item><title>Web Resource</title><image>[WEBMEDIA]resources/types/webresource_256x256_24.png</image><textcolor>#ff00ff</textcolor></item>
+		<item><title>Web Folder</title><image>[WEBMEDIA]resources/types/webfolder_256x256_24.png</image><textcolor>#ccff00</textcolor></item>
 	</types>
 </rss>
