@@ -294,7 +294,7 @@
 		{
 			try
 			{
-				var nlink=showtime.httpGet(o.link).toString();
+				var nlink=showtime.httpGet(o.link.replace(/stream/i,'strm')).toString();
 				if (service.debug=='1')
 				{
 					var parts=nlink.toString().split(" ");
