@@ -2,10 +2,6 @@
  * WebMedia plugin for showtime by andreus sebes
  *
  *  Copyright (C) 2011 andreus sebes
- *
- * 	ChangeLog:
- *	0.1:
- *	- Test version
  * 
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -61,7 +57,6 @@
 	settings.createBool("bypublisher", "Group by publisher?", true, function(v) { service.bypublisher = v; });
 	settings.createBool("bytype", "Group by type?", true, function(v) { service.bytype = v; });
 	settings.createBool("byfavorites", "Show favorites?", true, function(v) { service.byfavorites = v; });
-	//settings.createBool("adult", "Show 'Adult' theme?", false, function(v) { service.adult = v; });
 	settings.createDivider("Source settings");
 	//For Showtime versions v3.3.328+
 	//settings.createMultiOpt("usexmllocalization", "Xml file path option to use:", [['0', 'Merge all'], ['1', 'Option 1', true], ['2', 'Option 2'], ['3', 'Option 3'], ['4', 'Option 4']], function(v) { service.usexmllocalization = v; });
@@ -220,7 +215,7 @@
 
 	function is_streaming_media(o)
 	{
-		if (o.link.toString().match(/rtmp|rstp|mms|pnm|pna|thestreamdb\.com/i)==null) return false;
+		if (o.link.toString().match(/rtmp|rtsp|mms|pnm|pna|thestreamdb\.com/i)==null) return false;
 		else return true;
 	}
 
@@ -341,7 +336,6 @@
 					if (typ.title.toString() == test) img=typ.image.toString();
 			}
 		}
-		//if (service.debug=='1') showtime.trace("Image: |"+img+"|");
 		if (img=='') return null;
 		else return img.replace(/\[WEBMEDIA\]/gi,plugin.path);
 	}
@@ -466,13 +460,11 @@
 				if (fee_field.length()==0) notidentified=1;
 				for each (var subit in fee_field)
 				{
-					//showtime.message(fee.publisher+'|'+subit+'|',true,false);
 					if (subit=='') notidentified=1;
 					else
 					{
 						if (searcharr(aitem,subit)==false) 
 						{
-							//showtime.message(subit,true,false);
 							if (filter=='bycountry') page.appendItem(PREFIX+":browse:"+filter+":"+tp(subit)+":All:All:All:All", "directory", { title: subit, icon: get_image(null,subit,"country") });
 							else if (filter=='bytheme') page.appendItem(PREFIX+":browse:"+filter+":All:"+tp(subit)+":All:All:All", "directory", { title: subit, icon: get_image(null,subit,"theme") });
 							else if (filter=='bypublisher') page.appendItem(PREFIX+":browse:"+filter+":All:All:"+tp(subit)+":All:All", "directory", { title: subit, icon: get_image(null,subit,"publisher") });
@@ -563,6 +555,7 @@
 		page.type = "directory";
 		page.contents = "list";
 
+		// Page content
 		try
 		{
 			feed_contents = new XML(valid_xml(showtime.httpGet(osources.sources.item[feedid].link)));
@@ -580,7 +573,6 @@
 					var media_type=media_content.@type;
 					var media_length=media_content.@length;
 					var media_url=media_content.@url;
-					//var timeout=" timeout="+service.timeout.toString();
 					if (is_media_available(null,media_url)) page.appendItem(media_url, content_type, { title: item_title, description: item_desc, year: feed_item_content.pubDate, icon: item_icon });
 					else page.appendItem(PREFIX+":offline", content_type, { title: "[X] "+item_title, description: item_desc, year: feed_item_content.pubDate, icon: item_icon });
 				}
@@ -618,17 +610,8 @@
 		var prev=parseInt(feeditemid)-1;
 		var next=parseInt(feeditemid)+1;
 		page.appendAction("navopen",PREFIX+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+feedid, true, { title: "Back to list" });
-		if (prev>=0)
-		{
-			//var prev_title=(feed_contents.channel.item[prev].title.toString()=='')?'Item '+prev:feed_contents.channel.item[prev].title.toString();
-			page.appendAction("navopen",PREFIX+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+feedid+"-"+prev, true, { title: "<< Previous item" });
-		}
-		if (next<feed_contents.channel.item.length())
-		{
-			//var next_title=(feed_contents.channel.item[next].title.toString()=='')?'Item '+next:feed_contents.channel.item[next].title.toString();
-			page.appendAction("navopen",PREFIX+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+feedid+"-"+next, true, { title: "Next item >>" });
-		}
-		//page.appendAction("navopen", feed_item_content.link.toString(), true,{ title: "View in web browser (not working)" });
+		if (prev>=0) page.appendAction("navopen",PREFIX+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+feedid+"-"+prev, true, { title: "<< Previous item" });
+		if (next<feed_contents.channel.item.length()) page.appendAction("navopen",PREFIX+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+feedid+"-"+next, true, { title: "Next item >>" });
 		page.loading = false;
 	});
 
