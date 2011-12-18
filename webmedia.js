@@ -609,11 +609,11 @@
 		if (feed_item_content.link!='') page.appendPassiveItem("label", feed_item_content.link, { title: "Link"});
 		page.appendPassiveItem("divider");
 		page.appendPassiveItem("bodytext", item_desc);
-		var prev=parseInt(feeditemid)-1;
-		var next=parseInt(feeditemid)+1;
+		var next=parseInt(feeditemid)-1;
+		var prev=parseInt(feeditemid)+1;
+		if (prev<feed_contents.channel.item.length()) page.appendAction("navopen",PREFIX+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+feedid+"-"+prev, true, { title: "<< Previous item" });
+		if (next>=0) page.appendAction("navopen",PREFIX+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+feedid+"-"+next, true, { title: "Next item >>" });
 		page.appendAction("navopen",PREFIX+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+feedid, true, { title: "Back to list" });
-		if (prev>=0) page.appendAction("navopen",PREFIX+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+feedid+"-"+prev, true, { title: "<< Previous item" });
-		if (next<feed_contents.channel.item.length()) page.appendAction("navopen",PREFIX+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+feedid+"-"+next, true, { title: "Next item >>" });
 		page.loading = false;
 	});
 
