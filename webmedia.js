@@ -589,7 +589,7 @@
 
 	plugin.addURI(PREFIX+":browse:(.*):(.*):(.*):(.*):(.*):(.*):([0-9]+-[0-9]+)", function(page, filter, coun, the, pub, typ, fav, feedanditemid)
 	{
-		// Page properties
+		// Page properties 
 		var parts=feedanditemid.toString().split("-");
 		var feedid=parts[0];
 		var feeditemid=parts[1];
