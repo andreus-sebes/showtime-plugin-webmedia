@@ -2,7 +2,27 @@
 <rss version="2.0">
 	<sources>
 		<item>
-			<title>Countries Folder</title>
+			<title>Mars Movies</title>
+			<link>http://mars.jpl.nasa.gov/multimedia/videos/movies/</link>
+			<publisher>NASA</publisher>
+			<country>United States</country>
+			<theme>Science</theme>
+			<type>Web Folder</type>
+			<parentalcontrol>1</parentalcontrol>
+			<favorite>Yes</favorite>
+		</item>
+		<item>
+			<title>JPL Photojournal</title>
+			<link>http://photojournal.jpl.nasa.gov/jpeg/</link>
+			<publisher>NASA</publisher>
+			<country>United States</country>
+			<theme>Science</theme>
+			<type>Web Folder</type>
+			<parentalcontrol>1</parentalcontrol>
+			<favorite>Yes</favorite>
+		</item>
+		<item>
+			<title>World Flags</title>
 			<link>http://openiconlibrary.sourceforge.net/gallery2/Flags/Standard/png/256x256/</link>
 			<publisher>openiconlibrary</publisher>
 			<country></country>
@@ -10,6 +30,16 @@
 			<type>Web Folder</type>
 			<parentalcontrol>1</parentalcontrol>
 			<favorite>Yes</favorite>
+		</item>
+		<item>
+			<title>Mars Science Laboratory</title>
+			<link>http://mars.jpl.nasa.gov/multimedia/videos/movies/msl20111213/msl20111213-640.m4v</link>
+			<publisher>NASA</publisher>
+			<country>United States</country>
+			<theme>Science</theme>
+			<type>Web Resource</type>
+			<parentalcontrol>1</parentalcontrol>
+			<favorite>No</favorite>
 		</item>
 		<!-- CNN -->
 		<item>
