@@ -22,8 +22,8 @@
 (function(plugin)
 {
     var PREFIX = 'webmedia';
-    var _TITLE = 'webMedia';
-    var _SUBTITLE = 'free internet source media reader';
+    var _TITLE = 'WEBmedia';
+    var _SUBTITLE = 'internet source media reader';
     var _LOGO = plugin.path+"logo.png";
     var _AUTHOR = 'andreus sebes (andreus.sebes@gmail.com)';
 	var _TOS1 = _TITLE+' (referred hereafter as "software"), its author, partners, and associates do not condone piracy.\n\n'+
@@ -50,8 +50,8 @@
 	// Create startup service
     var service = plugin.createService(_TITLE, PREFIX+":start", "video", true, _LOGO);
 	// Create settings
-    var settings = plugin.createSettings(_TITLE, _LOGO, _TITLE);
-	settings.createInfo("info", _LOGO, _TITLE+" - "+_SUBTITLE+"\n\nPlugin developed by "+_AUTHOR);
+    var settings = plugin.createSettings(_TITLE, _LOGO, _TITLE+": "+_SUBTITLE);
+	settings.createInfo("info", _LOGO, _TITLE+": "+_SUBTITLE+"\n\n"+_TITLE+" plugin for Showtime is a "+_SUBTITLE+".\nCan read RSS feeds, Imagecast, Podcast, Videocast, Live TV/Radio (RTMP), Web Resources and Web Folders.\n\nPlugin developed by "+_AUTHOR+"\n\nGit: https://github.com/andreus-sebes/showtime-plugin-webmedia");
 
 	settings.createDivider("Layout settings");
 	settings.createBool("bycountry", "Group by country?", true, function(v) { service.bycountry = v; });
@@ -406,7 +406,7 @@
 		if (get_settings_file('Sources list not loaded')==false) { showtime.message('Sources list not loaded!\nCheck your sources xml file URL/path.', true, false); return; }
 
 		// Page properties
-		page.metadata.title = _TITLE+" - "+_SUBTITLE;
+		page.metadata.title = _TITLE+": "+_SUBTITLE;
 		page.metadata.logo = _LOGO;
 		page.type = "directory";
 		page.contents = "items";
