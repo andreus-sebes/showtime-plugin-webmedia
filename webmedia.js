@@ -64,7 +64,7 @@
 	//settings.createMultiOpt("usexmllocalization", "Xml file path option to use:", [['0', 'Merge all'], ['1', 'Option 1', true], ['2', 'Option 2'], ['3', 'Option 3'], ['4', 'Option 4']], function(v) { service.usexmllocalization = v; });
 	//For Showtime versions v3.3.327-
 	settings.createInt("usexmllocalization", "Xml file path option to use (0=merge):", 1, 0, 4, 1, "", function(v) { service.usexmllocalization = v; });
-	settings.createString("xmllocalization1", "1) HTTP/SMB URL for sources xml file:", "", function(v) { service.xmllocalization1 = v; });
+	settings.createString("xmllocalization1", "1) HTTP/SMB URL for sources xml file:", "https://raw.github.com/andreus-sebes/showtime-plugin-webmedia/master/sources.xml", function(v) { service.xmllocalization1 = v; });
 	settings.createString("xmllocalization2", "2) HTTP/SMB URL for sources xml file:", "", function(v) { service.xmllocalization2 = v; });
 	settings.createString("xmllocalization3", "3) HTTP/SMB URL for sources xml file:", "", function(v) { service.xmllocalization3 = v; });
 	settings.createString("xmllocalization4", "4) HTTP/SMB URL for sources xml file:", "", function(v) { service.xmllocalization4 = v; });
