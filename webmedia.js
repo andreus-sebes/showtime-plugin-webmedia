@@ -290,7 +290,7 @@
 		{
 			try
 			{
-				var nlink=showtime.httpGet(o.link.replace(/stream/i,'strm')).toString();
+				var nlink=showtime.httpGet(o.link.toString().replace(/\/stream\//i,'/strm/')).toString();
 				if (service.debug=='1')
 				{
 					var parts=nlink.toString().split(" ");
@@ -303,7 +303,7 @@
 		}
 		else var nlink=o.link;
 		if (nlink!='' && is_media_available(null,strip_timeout(nlink))) page.appendItem(strip_timeout(nlink)+" timeout="+service.timeout.toString(), streamingtype, {title: color_text(o,o.title), icon: get_image(o, null,"publisher") });
-		else page.appendItem(PREFIX+":offline", "image", {title: color_text(o,"[X] "+o.title), icon: get_image(o, null,"publisher") });
+		else page.appendItem(PREFIX+":offline", "image", {title: color_text(o,"<font color=\"#999999\"><i>"+o.title+"</i></font>"), icon: get_image(o, null,"publisher") });
 		if (service.debug=='1') showtime.trace("Live: "+o.title.toString()+" "+o.type.toString());
 	}
 
@@ -622,7 +622,7 @@
 		page.metadata.title = _TITLE+' > Offline';
 		page.type = "item";
 		page.metadata.icon=_IMG_OFFLINE;
-		page.appendPassiveItem("label", "This content is offline", { title: "Title"});
+		page.appendPassiveItem("label", "This content is offline or Showtime can't handle it.", { title: "Title"});
 		page.loading = false;
 	});
 
