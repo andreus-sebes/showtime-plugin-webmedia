@@ -16,6 +16,11 @@ Git: https://github.com/andreus-sebes/showtime-plugin-webmedia
 
 ## Release notes
 
+1.2 - working on Showtime 4.0:
+
+-  Fixes to work on Showtime 4.0
+-  Remove live event from xml builder an replace with on event
+
 1.1 - New logo, new features, bug fixes and small improvements:
 
 -  Two new types added:
@@ -60,8 +65,7 @@ WEBmedia, is available directly from Showtime plugin repository. Just install it
 
 WEBmedia, works better with the most recent versions of Showtime:
 
-- Official versions (rare): https://github.com/andoma/showtime/downloads
-- Unofficial version (latest): http://www.redsquirrel87.com/ShowtimeUnofficial.html
+- Official versions: https://www.lonelycoder.com/showtime/download
 
 ## Configuring
 
@@ -82,13 +86,13 @@ Examples:
 
 ### Creating sources XML URLs
 
-Just use the [WEBmedia XML maker](http://pastehtml.com/view/biyd14yau.html).
+Just use the [WEBmedia XML maker](http://pastehtml.com/view/cplz4osfs.html).
 
 Get other user sources URL and share your sources URL [here](http://psx-scene.com/forums/f254/webmedia-plugin-showtime-rss-feed-imagecast-podcast-videocast-live-tv-radio-reader-share-your-xml-url-sources-file-99321/).
 
 ### Editing sources XML URLs
 
-Just use the [WEBmedia XML maker](http://pastehtml.com/view/biyd14yau.html) for creating a new sources xml URL and then add the new `<item>` tags to your old sources xml URL.
+Just use the [WEBmedia XML maker](http://pastehtml.com/view/cplz4osfs.html) for creating a new sources xml URL and then add the new `<item>` tags to your old sources xml URL.
 
 ### Live TV/Radio RTMPs
 
@@ -101,23 +105,6 @@ You can use `[WEBMEDIA]` for indicating a local path inside the plugin file.
 There is a folder "resources" inside the plugin zip file which contains a subfolder for each group. You can use it.
 
 ## Known issues/Questions/FAQ (with Showtime v3.3.344)
-
-### What? No virtual keyboard in my PS3 to enter text?
-
-In PS3, i want to change the localization of the sources file but showtime doesn't let me enter text.
-
-The problem is that Showtime doesn't have a virtual keyboard. There are several issues registed: https://www.lonelycoder.com/redmine/issues/2; https://www.lonelycoder.com/redmine/issues/680; https://www.lonelycoder.com/redmine/issues/687
-
-Workaround: You have 2 options:
-
-1.  Connect a USB keyboard to your PS3, then, in showtime, go to WEBmedia plugin settings and manualy add your HTTP/SMB URL
-2.  Use a FTP filemanger and manualy change the configuration file of the plugin. This file is in:
-    
-    Showtime: `/dev_hdd0/game/HTSS00003/USRDIR/settings/settings/plugins/webmedia`
-	
-    Showtime (Multiman version): `/dev_hdd0/game/BLES80608/USRDIR/st_settings/settings/plugins/webmedia`
-	
-    Just add/change the line: `"xmllocalization1": "xxxxxxxxxxx",`
 
 ### Terms of service appear everytime i start WEBmedia!
 

@@ -21,23 +21,19 @@
 
 (function(plugin)
 {
-    var PREFIX = 'webmedia';
-    var _TITLE = 'WEBmedia';
-    var _SUBTITLE = 'internet source media reader';
-    var _LOGO = plugin.path+"logo.png";
-    var _AUTHOR = 'andreus sebes (andreus.sebes@gmail.com)';
-	var _TOS1 = _TITLE+' (referred hereafter as "software"), its author, partners, and associates do not condone piracy.\n\n'+
-		_TITLE+' is a hobby project, distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY, without even '+
+	var plugin_info = plugin.getDescriptor();
+	var _TOS1 = plugin_info.title+' (referred hereafter as "software"), its author, partners, and associates do not condone piracy.\n\n'+
+		plugin_info.title+' is a hobby project, distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY, without even '+
 		'the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\nThe software is intended solely for educational '+
 		'and testing purposes, and while it may allow the user to read/listen/watch free online resources from the internet, '+
 		'it is required that such user actions must comply with local, federal and country legislation.\n\n'+
-		_TITLE+' uses images that are licensed under Creative Commons.\n'+
+		plugin_info.title+' uses images that are licensed under Creative Commons.\n'+
 		'All rights go to the authors.';
 	var _TOS2 = 'Furthermore, the author of this software, its partners and associates shall assume NO responsibility, legal or otherwise implied, \n'+
-		'for any misuse of, or for any loss that may occur while using '+_TITLE+'.\nYou are solely responsible for complying with the applicable laws '+
-		'in your country and you must cease using this software should your actions during '+_TITLE+' operation lead to or may lead to infringement or '+
+		'for any misuse of, or for any loss that may occur while using '+plugin_info.title+'.\nYou are solely responsible for complying with the applicable laws '+
+		'in your country and you must cease using this software should your actions during '+plugin_info.title+' operation lead to or may lead to infringement or '+
 		'violation of the rights of the respective content copyright holders.\n\n'+
-		_TITLE+' is not licensed, approved or endorsed by any online resource proprietary.\n\n'+
+		plugin_info.title+' is not licensed, approved or endorsed by any online resource proprietary.\n\n'+
 		'Do you accept this agreement?';
 	var _IMG_UNKNOWN=plugin.path+'resources/others/notidentified_256x256_24.png';
 	var _IMG_FAVORITE=plugin.path+'resources/others/favorites_256x256_24.png';
@@ -48,11 +44,11 @@
 	var feed_contents=null;
 
 	// Create startup service
-    var service = plugin.createService(_TITLE, PREFIX+":start", "video", true, _LOGO);
-	// Create settings
-    var settings = plugin.createSettings(_TITLE, _LOGO, _TITLE+": "+_SUBTITLE);
-	settings.createInfo("info", _LOGO, _TITLE+": "+_SUBTITLE+"\n\n"+_TITLE+" plugin for Showtime is a "+_SUBTITLE+".\nCan read RSS feeds, Imagecast, Podcast, Videocast, Live TV/Radio (RTMP), Web Resources and Web Folders.\n\nPlugin developed by "+_AUTHOR+"\n\nGit: https://github.com/andreus-sebes/showtime-plugin-webmedia");
+    var service = plugin.createService(plugin_info.title, plugin_info.id+":start", "other", true, plugin.path+plugin_info.icon);
 
+	// Create settings
+    var settings = plugin.createSettings(plugin_info.title, plugin.path+plugin_info.icon, plugin_info.title+": "+plugin_info.synopsis);
+	settings.createInfo("info", plugin.path+plugin_info.icon, plugin_info.synopsis+"\n\n"+plugin_info.description+"\n\nPlugin developed by "+plugin_info.author+"\n\nHomepage: "+plugin_info.homepage);
 	settings.createDivider("Layout settings");
 	settings.createBool("bycountry", "Group by country?", true, function(v) { service.bycountry = v; });
 	settings.createBool("bytheme", "Group by theme?", true, function(v) { service.bytheme = v; });
@@ -60,21 +56,18 @@
 	settings.createBool("bytype", "Group by type?", true, function(v) { service.bytype = v; });
 	settings.createBool("byfavorites", "Show favorites?", true, function(v) { service.byfavorites = v; });
 	settings.createDivider("Source settings");
-	//For Showtime versions v3.3.328+
-	//settings.createMultiOpt("usexmllocalization", "Xml file path option to use:", [['0', 'Merge all'], ['1', 'Option 1', true], ['2', 'Option 2'], ['3', 'Option 3'], ['4', 'Option 4']], function(v) { service.usexmllocalization = v; });
-	//For Showtime versions v3.3.327-
-	settings.createInt("usexmllocalization", "Xml file path option to use (0=merge):", 1, 0, 4, 1, "", function(v) { service.usexmllocalization = v; });
-	settings.createString("xmllocalization1", "1) HTTP/SMB URL for sources xml file:", "https://raw.github.com/andreus-sebes/showtime-plugin-webmedia/master/sources.xml", function(v) { service.xmllocalization1 = v; });
-	settings.createString("xmllocalization2", "2) HTTP/SMB URL for sources xml file:", "", function(v) { service.xmllocalization2 = v; });
-	settings.createString("xmllocalization3", "3) HTTP/SMB URL for sources xml file:", "", function(v) { service.xmllocalization3 = v; });
-	settings.createString("xmllocalization4", "4) HTTP/SMB URL for sources xml file:", "", function(v) { service.xmllocalization4 = v; });
+	settings.createMultiOpt("usexmllocalization", "Xml file path option to use (0=merge):", [['0', 'Merge all'], ['1', 'Option 1', true], ['2', 'Option 2'], ['3', 'Option 3'], ['4', 'Option 4']], function(v) { service.usexmllocalization = v; });
+	settings.createString("xmllocalization1", "1) HTTP/SMB URL for sources xml file", "https://raw.github.com/andreus-sebes/showtime-plugin-webmedia/master/sources.xml", function(v) { service.xmllocalization1 = v; });
+	settings.createString("xmllocalization2", "2) HTTP/SMB URL for sources xml file", "", function(v) { service.xmllocalization2 = v; });
+	settings.createString("xmllocalization3", "3) HTTP/SMB URL for sources xml file", "", function(v) { service.xmllocalization3 = v; });
+	settings.createString("xmllocalization4", "4) HTTP/SMB URL for sources xml file", "", function(v) { service.xmllocalization4 = v; });
 	settings.createDivider("Legal settings");
 	settings.createBool("tos", "Terms of service accepted?", false, function(v) { service.tos = v; });
 	settings.createDivider("Parental control");
-	settings.createInt("parentalcontrol", "Block content above level:", 9, 1, 9, 1, "", function(v) { service.parentalcontrol = v; });
+	settings.createMultiOpt("parentalcontrol", "Block content above level", [['1', 'Level 1'], ['2', 'Level 2'], ['3', 'Level 3'], ['4', 'Level 4'], ['5', 'Level 5'], ['6', 'Level 6'], ['7', 'Level 7'], ['8', 'Level 8'], ['9', 'Level 9', true]], function(v) { service.parentalcontrol = v; });
 	settings.createDivider("Advanced settings");
-	settings.createInt("timeout", "RTMP timeout: ", 10, 0, 120, 1, "s", function(v) { service.timeout = v; });
-	settings.createInt("probetimeout", "Probe timeout (experimental): ", 0, 0, 120, 1, "s", function(v) { service.probetimeout = v; });
+	settings.createMultiOpt("timeout", "RTMP timeout", [['0', '0 seconds'], ['10', '10 seconds', true], ['20', '20 seconds'], ['30', '30 seconds'], ['40', '40 seconds'], ['50', '50 seconds'], ['60', '60 seconds'], ['70', '70 seconds'], ['80', '80 seconds'], ['90', '90 seconds'], ['100', '100 seconds'], ['110', '110 seconds'], ['120', '120 seconds']], function(v) { service.timeout = v; });
+	settings.createMultiOpt("probetimeout", "Probe timeout", [['0', '0 seconds'], ['10', '10 seconds', true], ['20', '20 seconds'], ['30', '30 seconds'], ['40', '40 seconds'], ['50', '50 seconds'], ['60', '60 seconds'], ['70', '70 seconds'], ['80', '80 seconds'], ['90', '90 seconds'], ['100', '100 seconds'], ['110', '110 seconds'], ['120', '120 seconds']], function(v) { service.probetimeout = v; });
 	settings.createBool("debug", "Debug?", false, function(v) { service.debug = v; });
     
 	//workaround for "Syntax Error: xml is a reserved identifier"
@@ -303,7 +296,7 @@
 		}
 		else var nlink=o.link;
 		if (nlink!='' && is_media_available(null,strip_timeout(nlink))) page.appendItem(strip_timeout(nlink)+" timeout="+service.timeout.toString(), streamingtype, {title: color_text(o,o.title), icon: get_image(o, null,"publisher") });
-		else page.appendItem(PREFIX+":offline", "image", {title: color_text(o,"<font color=\"#999999\"><i>"+o.title+"</i></font>"), icon: get_image(o, null,"publisher") });
+		else page.appendItem(plugin_info.id+":offline", "image", {title: color_text(o,"<font color=\"#999999\"><i>"+o.title+"</i></font>"), icon: get_image(o, null,"publisher") });
 		if (service.debug=='1') showtime.trace("Live: "+o.title.toString()+" "+o.type.toString());
 	}
 
@@ -397,7 +390,7 @@
 			if (showtime.message(_TOS2, true, true)) service.tos = 1;
 			else
 			{
-				page.error("Terms of service haven't been accepted.\nYou cannot use "+_TITLE+" without accepting the Terms of service.");
+				page.error("Terms of service haven't been accepted.\nYou cannot use "+plugin_info.title+" without accepting the Terms of service.");
 				return;
 			}
 		}
@@ -406,8 +399,8 @@
 		if (get_settings_file('Sources list not loaded')==false) { showtime.message('Sources list not loaded!\nCheck your sources xml file URL/path.', true, false); return; }
 
 		// Page properties
-		page.metadata.title = _TITLE+": "+_SUBTITLE;
-		page.metadata.logo = _LOGO;
+		page.metadata.title = plugin_info.title+": "+plugin_info.synopsis;
+		page.metadata.logo = plugin.path+plugin_info.icon;
 		page.type = "directory";
 		page.contents = "items";
 
@@ -422,29 +415,29 @@
 					if (is_web_media(fee)) page.appendItem(fee.link.toString(), "item", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
 					else if (is_web_folder(fee)) page.appendItem(fee.link.toString(), "directory", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
 					else if (is_streaming_media(fee)) add_stream_option(page, fee);
-					else page.appendItem(PREFIX+":browse:None:All:All:All:All:All:"+count, "item", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
+					else page.appendItem(plugin_info.id+":browse:None:All:All:All:All:All:"+count, "item", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
 				}
 				count++;
 			}
 		}
 		else
 		{
-			page.appendItem(PREFIX+":browse:None:All:All:All:All:All", "directory", { title: 'All items' });
-			if (service.bycountry=='1') page.appendItem(PREFIX+":group:bycountry", "directory", { title: 'By country' });
-			if (service.bytheme=='1') page.appendItem(PREFIX+":group:bytheme", "directory", { title: 'By theme' });
-			if (service.bypublisher=='1') page.appendItem(PREFIX+":group:bypublisher", "directory", { title: 'By publisher' });
-			if (service.bytype=='1') page.appendItem(PREFIX+":group:bytype", "directory", { title: 'By type' });
-			if (service.byfavorites=='1') page.appendItem(PREFIX+":browse:byfavorites:All:All:All:All:Yes", "directory", { title: 'Favorites', icon: _IMG_FAVORITE });
+			page.appendItem(plugin_info.id+":browse:None:All:All:All:All:All", "directory", { title: 'All items' });
+			if (service.bycountry=='1') page.appendItem(plugin_info.id+":group:bycountry", "directory", { title: 'By country' });
+			if (service.bytheme=='1') page.appendItem(plugin_info.id+":group:bytheme", "directory", { title: 'By theme' });
+			if (service.bypublisher=='1') page.appendItem(plugin_info.id+":group:bypublisher", "directory", { title: 'By publisher' });
+			if (service.bytype=='1') page.appendItem(plugin_info.id+":group:bytype", "directory", { title: 'By type' });
+			if (service.byfavorites=='1') page.appendItem(plugin_info.id+":browse:byfavorites:All:All:All:All:Yes", "directory", { title: 'Favorites', icon: _IMG_FAVORITE });
 		}
 
 		page.loading = false;
 	}
 
-	plugin.addURI(PREFIX+":group:(.*)", function(page, filter)
+	plugin.addURI(plugin_info.id+":group:(.*)", function(page, filter)
 	{
 		// Page properties
-		page.metadata.title = _TITLE+' > By '+filter.replace(/by/,'');
-		page.metadata.logo = _LOGO;
+		page.metadata.title = plugin_info.title+' > By '+filter.replace(/by/,'');
+		page.metadata.logo = plugin.path+plugin_info.icon;
 		page.type = "directory";
 		page.contents = "items"
 
@@ -467,10 +460,10 @@
 					{
 						if (searcharr(aitem,subit)==false) 
 						{
-							if (filter=='bycountry') page.appendItem(PREFIX+":browse:"+filter+":"+tp(subit)+":All:All:All:All", "directory", { title: subit, icon: get_image(null,subit,"country") });
-							else if (filter=='bytheme') page.appendItem(PREFIX+":browse:"+filter+":All:"+tp(subit)+":All:All:All", "directory", { title: subit, icon: get_image(null,subit,"theme") });
-							else if (filter=='bypublisher') page.appendItem(PREFIX+":browse:"+filter+":All:All:"+tp(subit)+":All:All", "directory", { title: subit, icon: get_image(null,subit,"publisher") });
-							else if (filter=='bytype') page.appendItem(PREFIX+":browse:"+filter+":All:All:All:"+tp(subit)+":All", "directory", { title: subit, icon: get_image(null,subit,"type") });
+							if (filter=='bycountry') page.appendItem(plugin_info.id+":browse:"+filter+":"+tp(subit)+":All:All:All:All", "directory", { title: subit, icon: get_image(null,subit,"country") });
+							else if (filter=='bytheme') page.appendItem(plugin_info.id+":browse:"+filter+":All:"+tp(subit)+":All:All:All", "directory", { title: subit, icon: get_image(null,subit,"theme") });
+							else if (filter=='bypublisher') page.appendItem(plugin_info.id+":browse:"+filter+":All:All:"+tp(subit)+":All:All", "directory", { title: subit, icon: get_image(null,subit,"publisher") });
+							else if (filter=='bytype') page.appendItem(plugin_info.id+":browse:"+filter+":All:All:All:"+tp(subit)+":All", "directory", { title: subit, icon: get_image(null,subit,"type") });
 							aitem.push(subit);
 						}
 					}
@@ -479,25 +472,25 @@
 		}
 		if (notidentified==1)
 		{
-			if (filter=='bycountry') page.appendItem(PREFIX+":browse:"+filter+":None:All:All:All:All", "directory", { title: "Not identified", icon: _IMG_UNKNOWN });
-			else if (filter=='bytheme') page.appendItem(PREFIX+":browse:"+filter+":All:None:All:All:All", "directory", { title: "Not identified", icon: _IMG_UNKNOWN });
-			else if (filter=='bypublisher') page.appendItem(PREFIX+":browse:"+filter+":All:All:None:All:All", "directory", { title: "Not identified", icon: _IMG_UNKNOWN });
-			else if (filter=='bytype') page.appendItem(PREFIX+":browse:"+filter+":All:All:All:None:All", "directory", { title: "Not identified", icon: _IMG_UNKNOWN });
+			if (filter=='bycountry') page.appendItem(plugin_info.id+":browse:"+filter+":None:All:All:All:All", "directory", { title: "Not identified", icon: _IMG_UNKNOWN });
+			else if (filter=='bytheme') page.appendItem(plugin_info.id+":browse:"+filter+":All:None:All:All:All", "directory", { title: "Not identified", icon: _IMG_UNKNOWN });
+			else if (filter=='bypublisher') page.appendItem(plugin_info.id+":browse:"+filter+":All:All:None:All:All", "directory", { title: "Not identified", icon: _IMG_UNKNOWN });
+			else if (filter=='bytype') page.appendItem(plugin_info.id+":browse:"+filter+":All:All:All:None:All", "directory", { title: "Not identified", icon: _IMG_UNKNOWN });
 		}
 
 		page.loading = false;
 	});
 
-	plugin.addURI(PREFIX+":browse:(.*):(.*):(.*):(.*):(.*):(.*)", function(page, filter, coun, the, pub, typ, fav)
+	plugin.addURI(plugin_info.id+":browse:(.*):(.*):(.*):(.*):(.*):(.*)", function(page, filter, coun, the, pub, typ, fav)
 	{
 		// Page properties
-		if (filter=='bycountry') page.metadata.title = _TITLE+' > By country ('+coun+') > Browse';
-		else if (filter=='bytheme') page.metadata.title = _TITLE+' > By theme ('+the+') > Browse';
-		else if (filter=='bypublisher') page.metadata.title = _TITLE+' > By publisher ('+pub+') > Browse';
-		else if (filter=='bytype') page.metadata.title = _TITLE+' > By type ('+typ+') > Browse';
-		else if (filter=='byfavorites') page.metadata.title = _TITLE+' > Favorites > Browse';
-		else if (filter=='None') page.metadata.title = _TITLE+' > Browse';
-		page.metadata.logo = _LOGO;
+		if (filter=='bycountry') page.metadata.title = plugin_info.title+' > By country ('+coun+') > Browse';
+		else if (filter=='bytheme') page.metadata.title = plugin_info.title+' > By theme ('+the+') > Browse';
+		else if (filter=='bypublisher') page.metadata.title = plugin_info.title+' > By publisher ('+pub+') > Browse';
+		else if (filter=='bytype') page.metadata.title = plugin_info.title+' > By type ('+typ+') > Browse';
+		else if (filter=='byfavorites') page.metadata.title = plugin_info.title+' > Favorites > Browse';
+		else if (filter=='None') page.metadata.title = plugin_info.title+' > Browse';
+		page.metadata.logo = plugin.path+plugin_info.icon;
 		page.type = "directory";
 		page.contents = "items"
 		page.loading = false;
@@ -521,7 +514,7 @@
 						if (is_web_media(fee)) page.appendItem(fee.link.toString(), "item", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
 						else if (is_web_folder(fee)) page.appendItem(fee.link.toString(), "directory", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
 						else if (is_streaming_media(fee)) add_stream_option(page, fee);
-						else page.appendItem(PREFIX+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+count, "item", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
+						else page.appendItem(plugin_info.id+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+count, "item", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
 						notidentified=1;
 					}
 					for each (var subit in fee_field)
@@ -531,7 +524,7 @@
 							if (is_web_media(fee)) page.appendItem(fee.link.toString(), "item", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
 							else if (is_web_folder(fee)) page.appendItem(fee.link.toString(), "directory", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
 							else if (is_streaming_media(fee)) add_stream_option(page, fee);
-							else page.appendItem(PREFIX+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+count, "item", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
+							else page.appendItem(plugin_info.id+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+count, "item", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
 						}
 					}
 				}
@@ -540,7 +533,7 @@
 					if (is_web_media(fee)) page.appendItem(fee.link.toString(), "item", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
 					else if (is_web_folder(fee)) page.appendItem(fee.link.toString(), "directory", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
 					else if (is_streaming_media(fee)) add_stream_option(page, fee);
-					else page.appendItem(PREFIX+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+count, "item", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
+					else page.appendItem(plugin_info.id+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+count, "item", { title: color_text(fee,fee.title), icon: get_image(fee,null,"publisher") });
 				}
 			}
 			count++;
@@ -548,12 +541,12 @@
 		page.loading = false;
 	});
 
-	plugin.addURI(PREFIX+":browse:(.*):(.*):(.*):(.*):(.*):(.*):([0-9]+)", function(page, filter, coun, the, pub, typ, fav, feedid)
+	plugin.addURI(plugin_info.id+":browse:(.*):(.*):(.*):(.*):(.*):(.*):([0-9]+)", function(page, filter, coun, the, pub, typ, fav, feedid)
 	{
 		// Page properties
-		if (filter=='None') page.metadata.title = _TITLE+' > Browse > '+osources.sources.item[feedid].title;
-		else page.metadata.title = _TITLE+' > ... > Browse > '+osources.sources.item[feedid].title;
-		page.metadata.logo = _LOGO;
+		if (filter=='None') page.metadata.title = plugin_info.title+' > Browse > '+osources.sources.item[feedid].title;
+		else page.metadata.title = plugin_info.title+' > ... > Browse > '+osources.sources.item[feedid].title;
+		page.metadata.logo = plugin.path+plugin_info.icon;
 		page.type = "directory";
 		page.contents = "list";
 
@@ -576,9 +569,9 @@
 					var media_length=media_content.@length;
 					var media_url=media_content.@url;
 					if (is_media_available(null,media_url)) page.appendItem(media_url, content_type, { title: item_title, description: item_desc, year: feed_item_content.pubDate, icon: item_icon });
-					else page.appendItem(PREFIX+":offline", content_type, { title: "[X] "+item_title, description: item_desc, year: feed_item_content.pubDate, icon: item_icon });
+					else page.appendItem(plugin_info.id+":offline", content_type, { title: "[X] "+item_title, description: item_desc, year: feed_item_content.pubDate, icon: item_icon });
 				}
-				else page.appendItem(PREFIX+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+feedid+"-"+count, content_type, { title: item_title, description: item_desc, year: feed_item_content.pubDate, icon: item_icon });
+				else page.appendItem(plugin_info.id+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+feedid+"-"+count, content_type, { title: item_title, description: item_desc, year: feed_item_content.pubDate, icon: item_icon });
 				count=count+1;
 				if (service.debug=='1') showtime.trace(item_title+'\n->'+item_icon);
 			}
@@ -587,14 +580,14 @@
 		page.loading = false;
 	});
 
-	plugin.addURI(PREFIX+":browse:(.*):(.*):(.*):(.*):(.*):(.*):([0-9]+-[0-9]+)", function(page, filter, coun, the, pub, typ, fav, feedanditemid)
+	plugin.addURI(plugin_info.id+":browse:(.*):(.*):(.*):(.*):(.*):(.*):([0-9]+-[0-9]+)", function(page, filter, coun, the, pub, typ, fav, feedanditemid)
 	{
 		// Page properties 
 		var parts=feedanditemid.toString().split("-");
 		var feedid=parts[0];
 		var feeditemid=parts[1];
-		page.metadata.title = _TITLE+' > ... > '+feed_contents.channel.item[feeditemid].title;
-		page.metadata.logo = _LOGO;
+		page.metadata.title = plugin_info.title+' > ... > '+feed_contents.channel.item[feeditemid].title;
+		page.metadata.logo = plugin.path+plugin_info.icon;
 		page.type = "item";
 		page.metadata.icon=_IMG_UNKNOWN;
 		
@@ -611,15 +604,15 @@
 		page.appendPassiveItem("bodytext", item_desc);
 		var next=parseInt(feeditemid)-1;
 		var prev=parseInt(feeditemid)+1;
-		if (prev<feed_contents.channel.item.length()) page.appendAction("navopen",PREFIX+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+feedid+"-"+prev, true, { title: "<< Previous item" });
-		if (next>=0) page.appendAction("navopen",PREFIX+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+feedid+"-"+next, true, { title: "Next item >>" });
-		page.appendAction("navopen",PREFIX+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+feedid, true, { title: "Back to list" });
+		if (prev<feed_contents.channel.item.length()) page.appendAction("navopen",plugin_info.id+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+feedid+"-"+prev, true, { title: "<< Previous item" });
+		if (next>=0) page.appendAction("navopen",plugin_info.id+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+feedid+"-"+next, true, { title: "Next item >>" });
+		page.appendAction("navopen",plugin_info.id+":browse:"+filter+":"+coun+":"+the+":"+pub+":"+typ+":"+fav+":"+feedid, true, { title: "Back to list" });
 		page.loading = false;
 	});
 
-	plugin.addURI(PREFIX+":offline", function(page)
+	plugin.addURI(plugin_info.id+":offline", function(page)
 	{
-		page.metadata.title = _TITLE+' > Offline';
+		page.metadata.title = plugin_info.title+' > Offline';
 		page.type = "item";
 		page.metadata.icon=_IMG_OFFLINE;
 		page.appendPassiveItem("label", "This content is offline or Showtime can't handle it.", { title: "Title"});
@@ -627,6 +620,6 @@
 	});
 
 	//Start plugin
-	plugin.addURI(PREFIX+":start", startPage);
+	plugin.addURI(plugin_info.id+":start", startPage);
 
 })(this);

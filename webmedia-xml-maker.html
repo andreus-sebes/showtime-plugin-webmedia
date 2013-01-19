@@ -38,7 +38,7 @@
 							'	</label>'+
 							'	<div class="clr"></div>'+
 							'</div>';
-		$('div[id*="div_"] .optf .addsf').live("click", function (e)
+		$(document).on("click",'div[id*="div_"] .optf .addsf', function (e)
 		{
 			//$('.xmlarea').removeClass('hd').hide();
 			var rand=Math.floor(Math.random()*9999999999999999+1);
@@ -69,7 +69,7 @@
 			$(this).parent("span").parent("p").parent("div").after(newf);
 			return false;
 		});
-		$('div[id*="div_"] .optf .remsf').live("click", function (e)
+		$(document).on("click", 'div[id*="div_"] .optf .remsf', function (e)
 		{
 			//$('.xmlarea').removeClass('hd').hide();
 			$(this).parent("span").parent("span").parent("p").parent("div").remove();
@@ -77,7 +77,7 @@
 		});
 	
 		//TO DO
-		$('div[id*="div_"] .opts .adds').live("click", function (e)
+		$(document).on("click", 'div[id*="div_"] .opts .adds', function (e)
 		{
 			//$('.xmlarea').removeClass('hd').hide();
 			var rand=Math.floor(Math.random()*9999999999999999+1);
@@ -93,13 +93,13 @@
 			$(this).parent("div").parent("label").after(ohtml);
 			return false;
 		});
-		$('div[id*="div_"] .opts .rems').live("click", function (e)
+		$(document).on("click", 'div[id*="div_"] .opts .rems', function (e)
 		{
 			//$('.xmlarea').removeClass('hd').hide();
 			$(this).parent("span").parent("div").parent("label").remove();
 			return false;
 		});
-		$('input[id*=_theme]').live("change", function (e)
+		$(document).on("change", 'input[id*=_theme]', function (e)
 		{
 			if (val!=def_source_theme)
 			{
@@ -133,7 +133,7 @@
 				});
 			}
 		});
-		$('input[id*=_publisher]').live("change", function (e)
+		$(document).on("change", 'input[id*=_publisher]', function (e)
 		{
 			if (val!=def_source_publisher)
 			{
@@ -168,7 +168,7 @@
 			}
 		});
 
-		$('#form_pastebin, #form_pastehtml').live("submit", function (e)
+		$(document).on("submit", '#form_pastebin, #form_pastehtml', function (e)
 		{
 			var oxml ='<?xml version="1.0" encoding="UTF-8"?>\n';
 			oxml+='<rss>\n';
@@ -241,28 +241,28 @@
 
 		//$('.xmlarea').removeClass('hd').hide();
 		$('div[id*="div_source"] input[id*=_title]').val(def_source_title).addClass("inactive");
-		$('div[id*="div_source"] input[id*=_title]').live("focus", function() { if ($(this).val()==def_source_title) { $(this).val(""); $(this).removeClass("inactive");} })
-													.live("blur", function() { if ($(this).val()=='') {$(this).addClass("inactive");$(this).val(def_source_title); } });
+		$(document).on("focus", 'div[id*="div_source"] input[id*=_title]', function() { if ($(this).val()==def_source_title) { $(this).val(""); $(this).removeClass("inactive");} });
+		$(document).on("blur",  'div[id*="div_source"] input[id*=_title]', function() { if ($(this).val()=='') {$(this).addClass("inactive");$(this).val(def_source_title); } });
 		$('div[id*="div_source"] input[id*=_link]').val(def_source_link).addClass("inactive");
-		$('div[id*="div_source"] input[id*=_link]').live("focus", function() { if ($(this).val()==def_source_link) { $(this).val(""); $(this).removeClass("inactive");} })
-												.live("blur", function() { if ($(this).val()=='') {$(this).addClass("inactive");$(this).val(def_source_link); } });
+		$(document).on("focus", 'div[id*="div_source"] input[id*=_link]', function() { if ($(this).val()==def_source_link) { $(this).val(""); $(this).removeClass("inactive");} });
+		$(document).on("blur",  'div[id*="div_source"] input[id*=_link]', function() { if ($(this).val()=='') {$(this).addClass("inactive");$(this).val(def_source_link); } });
 		$('div[id*="div_source"] input[id*=_thumbnail]').val(def_source_thumbnail).addClass("inactive");
-		$('div[id*="div_source"] input[id*=_thumbnail]').live("focus", function() { if ($(this).val()==def_source_thumbnail) { $(this).val(""); $(this).removeClass("inactive");} })
-														.live("blur", function() { if ($(this).val()=='') {$(this).addClass("inactive");$(this).val(def_source_thumbnail); } });
+		$(document).on("focus", 'div[id*="div_source"] input[id*=_thumbnail]', function() { if ($(this).val()==def_source_thumbnail) { $(this).val(""); $(this).removeClass("inactive");} });
+		$(document).on("blur",  'div[id*="div_source"] input[id*=_thumbnail]', function() { if ($(this).val()=='') {$(this).addClass("inactive");$(this).val(def_source_thumbnail); } });
 		$('div[id*="div_source"] input[id*=_publisher]').val(def_source_publisher).addClass("inactive");
-		$('div[id*="div_source"] input[id*=_publisher]').live("focus", function() { if ($(this).val()==def_source_publisher) { $(this).val(""); $(this).removeClass("inactive");} })
-														.live("blur", function() { if ($(this).val()=='') {$(this).addClass("inactive");$(this).val(def_source_publisher); } });
+		$(document).on("focus", 'div[id*="div_source"] input[id*=_publisher]', function() { if ($(this).val()==def_source_publisher) { $(this).val(""); $(this).removeClass("inactive");} });
+		$(document).on("blur",  'div[id*="div_source"] input[id*=_publisher]', function() { if ($(this).val()=='') {$(this).addClass("inactive");$(this).val(def_source_publisher); } });
 		$('div[id*="div_source"] input[id*=_theme]').val(def_source_theme).addClass("inactive");
-		$('div[id*="div_source"] input[id*=_theme]').live("focus", function() { if ($(this).val()==def_source_theme) { $(this).val(""); $(this).removeClass("inactive");} })
-													.live("blur", function() { if ($(this).val()=='') {$(this).addClass("inactive");$(this).val(def_source_theme); } });
+		$(document).on("focus", 'div[id*="div_source"] input[id*=_theme]', function() { if ($(this).val()==def_source_theme) { $(this).val(""); $(this).removeClass("inactive");} });
+		$(document).on("blur",  'div[id*="div_source"] input[id*=_theme]', function() { if ($(this).val()=='') {$(this).addClass("inactive");$(this).val(def_source_theme); } });
 		$('div[id*="div_source"] input[id*=_country]').val('');
 		$('div[id*="div_source"] input[id*=_type]').val('');
 		$('div[id*="div_source"] input[id*=_parentalcontrol]').val('');
 		$('div[id*="div_source"] input[id*=_favorite]').val('');
-		$('div[id*="div_publisher"] input[id*=_image]').live("focus", function() { if ($(this).val()==def_publisher_image) { $(this).val(""); $(this).removeClass("inactive");} })
-													   .live("blur", function() { if ($(this).val()=='') {$(this).addClass("inactive");$(this).val(def_publisher_image); } });
-		$('div[id*="div_theme"] input[id*=_image]').live("focus", function() { if ($(this).val()==def_theme_image) { $(this).val(""); $(this).removeClass("inactive");} })
-												  .live("blur", function() { if ($(this).val()=='') {$(this).addClass("inactive");$(this).val(def_theme_image); } });
+		$(document).on("focus", 'div[id*="div_publisher"] input[id*=_image]', function() { if ($(this).val()==def_publisher_image) { $(this).val(""); $(this).removeClass("inactive");} });
+		$(document).on("blur",  'div[id*="div_publisher"] input[id*=_image]', function() { if ($(this).val()=='') {$(this).addClass("inactive");$(this).val(def_publisher_image); } });
+		$(document).on("focus", 'div[id*="div_theme"] input[id*=_image]', function() { if ($(this).val()==def_theme_image) { $(this).val(""); $(this).removeClass("inactive");} });
+		$(document).on("blue",  'div[id*="div_theme"] input[id*=_image]', function() { if ($(this).val()=='') {$(this).addClass("inactive");$(this).val(def_theme_image); } });
 		$('#tabs').tabs();
 		//$("input[id*=_textcolor]").colorpicker();
 	});	

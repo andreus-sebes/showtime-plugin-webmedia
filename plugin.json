@@ -1,12 +1,14 @@
 {
-	"type": "javascript",
-	"id": "webmedia",
-	"file": "webmedia.js",
-	"showtimeVersion": "3.3.219",
-	"version": "1.1",
-	"author": "andreus sebes (andreus.sebes@gmail.com)",
-	"title": "WEBmedia",
-        "icon": "logo.png",
-	"synopsis": "Internet source media reader",
-	"description": "<p>WEBmedia plugin for Showtime is a internet source media reader</p><p>&nbsp;</p><p>Can read RSS feeds, Imagecast, Podcast, Videocast, Live TV/Radio (RTMP), Web Resources and Web Folders.</p><p>&nbsp;</p><p>Git: <a href=\"https://github.com/andreus-sebes/showtime-plugin-webmedia\">https://github.com/andreus-sebes/showtime-plugin-webmedia</a></p>"
+  "type": "javascript",
+  "id": "webmedia",
+  "file": "webmedia.js",
+  "category": "video",
+  "showtimeVersion": "4.1.404",
+  "version": "1.2",
+  "author": "andreus sebes (andreus.sebes@gmail.com)",
+  "title": "WEBmedia",
+  "icon": "logo.png",
+  "synopsis": "Internet source media reader",
+  "description":"WEBmedia plugin for Showtime is a internet source media reader\n\nCan read RSS feeds, Imagecast, Podcast, Videocast, Live TV/Radio (RTMP), Web Resources and Web Folders.",
+  "homepage":"https://github.com/andreus-sebes/showtime-plugin-webmedia"
 }
