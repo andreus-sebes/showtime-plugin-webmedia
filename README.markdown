@@ -47,9 +47,9 @@ Git: https://github.com/andreus-sebes/showtime-plugin-webmedia
 -  Extremely flexible, for each source, you can have a simple xml with title and link or a more complex xml with title, link, thumbnail, themes, publisher, country, type, parental control and if is your favorite 
 -  Some debug settings
 
-## Licence notes
+## License notes
 
-(c) 2011 andreus sebes [andreus.sebes@gmail.com](mailto:andreus.sebes@gmail.com)
+(c) 2011-2013 andreus sebes [andreus.sebes@gmail.com](mailto:andreus.sebes@gmail.com)
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
